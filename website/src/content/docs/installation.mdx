@@ -1,0 +1,131 @@
+---
+title: Installation
+description: Multiple ways to install abikit including quick install via curl and npm installation
+prev:
+  title: Getting Started
+  slug: getting-started
+next:
+  title: Install Script
+  slug: install-script
+---
+
+# Installation
+
+abikit can be installed in multiple ways depending on your needs.
+
+## Quick Install (Recommended)
+
+The easiest way to install abikit is using the curl installer:
+
+```bash
+curl -L https://abikit.ahloop.com/install | bash
+```
+
+**Want to see what the installer does?** Check out the [Install Script Details](/install-script) page.
+
+Then restart your terminal or source your shell profile:
+
+```bash
+# For bash
+source ~/.bashrc
+
+# For zsh
+source ~/.zshenv
+
+# For fish
+source ~/.config/fish/config.fish
+```
+
+Verify the installation:
+
+```bash
+abikit --version
+```
+
+## Update
+
+To update abikit to the latest version:
+
+```bash
+abikitup
+```
+
+**Want to see what the updater does?** Check out the [Update Script Details](/update-script) page.
+
+## Alternative: npm Installation
+
+If you prefer to install via npm:
+
+```bash
+npm install -g abikit
+```
+
+Or locally in your project:
+
+```bash
+npm install --save-dev abikit
+```
+
+## Requirements
+
+- **Node.js** >= 16.0.0
+- **npm** (comes with Node.js)
+
+For the curl installer:
+- **curl** or **wget**
+
+## Supported Platforms
+
+- macOS (Intel and Apple Silicon)
+- Linux (x64, arm64)
+- Windows (via Git Bash or WSL)
+
+## Supported Shells
+
+The installer auto-configures the following shells:
+
+- **zsh** (updates `~/.zshenv`)
+- **bash** (updates `~/.bashrc`)
+- **fish** (updates `~/.config/fish/config.fish`)
+- **ash** (updates `~/.profile`)
+
+## Uninstallation
+
+To completely remove abikit:
+
+```bash
+# Remove npm package
+npm uninstall -g abikit
+
+# Remove abikit directory
+rm -rf ~/.abikit
+
+# Manually remove PATH entry from shell profile
+# Edit ~/.bashrc, ~/.zshenv, or ~/.config/fish/config.fish
+```
+
+## Troubleshooting
+
+### "abikit: command not found"
+
+**Solution**: Source your shell profile or restart terminal:
+```bash
+source ~/.bashrc  # or ~/.zshenv for zsh
+```
+
+### "npm not found"
+
+**Solution**: Install Node.js from https://nodejs.org
+
+### Permission denied
+
+**Solution**: Ensure you have write permissions to `~/.abikit/bin`:
+```bash
+mkdir -p ~/.abikit/bin
+chmod 755 ~/.abikit/bin
+```
+
+## Next Steps
+
+Once installed, check out the [CLI Reference](/cli-reference) to learn about available commands, or jump to [Configuration](/configuration) to set up your first project.
+

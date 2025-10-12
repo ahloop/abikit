@@ -1,0 +1,69 @@
+#!/usr/bin/env bash
+set -eo pipefail
+
+echo "Installing abikit..."
+
+BASE_DIR="${XDG_CONFIG_HOME:-$HOME}"
+ABIKIT_DIR="${ABIKIT_DIR:-"$BASE_DIR/.abikit"}"
+BIN_DIR="$ABIKIT_DIR/bin"
+UP_URL="https://abikit.ahloop.com/abikitup"
+
+# Create the .abikit bin directory if it doesn't exist
+mkdir -p "$BIN_DIR"
+
+# Download abikitup script
+echo "Downloading abikitup..."
+if command -v curl >/dev/null 2>&1; then
+    curl -sSfL "$UP_URL" -o "$BIN_DIR/abikitup" && chmod +x "$BIN_DIR/abikitup"
+elif command -v wget >/dev/null 2>&1; then
+    wget -qO "$BIN_DIR/abikitup" "$UP_URL" && chmod +x "$BIN_DIR/abikitup"
+else
+    echo "Error: curl or wget is required to download abikitup"
+    exit 1
+fi
+
+# Detect shell and profile file
+case $SHELL in
+*/zsh)
+    PROFILE="${ZDOTDIR-"$HOME"}/.zshenv"
+    PREF_SHELL=zsh
+    ;;
+*/bash)
+    PROFILE=$HOME/.bashrc
+    PREF_SHELL=bash
+    ;;
+*/fish)
+    PROFILE=$HOME/.config/fish/config.fish
+    PREF_SHELL=fish
+    ;;
+*/ash)
+    PROFILE=$HOME/.profile
+    PREF_SHELL=ash
+    ;;
+*)
+    echo "abikit: could not detect shell, manually add ${BIN_DIR} to your PATH."
+    exit 1
+esac
+
+# Only add abikit directory to PATH if it isn't already there
+if [[ ":$PATH:" != *":${BIN_DIR}:"* ]]; then
+    # Add the abikit directory to the path and ensure the old PATH variables remain
+    if [[ "$PREF_SHELL" == "fish" ]]; then
+        echo >> "$PROFILE" && echo "fish_add_path -a \"$BIN_DIR\"" >> "$PROFILE"
+    else
+        echo >> "$PROFILE" && echo "export PATH=\"\$PATH:$BIN_DIR\"" >> "$PROFILE"
+    fi
+fi
+
+echo
+echo "Detected your preferred shell is $PREF_SHELL and added abikit to PATH."
+echo
+
+# Run abikitup to install abikit via npm
+"$BIN_DIR/abikitup"
+
+echo
+echo "Installation complete!"
+echo "Run 'source $PROFILE' or start a new terminal session to use abikit."
+echo "Then, run 'abikit --help' to get started."
+

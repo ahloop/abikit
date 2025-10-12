@@ -1,0 +1,115 @@
+# Example contracts.yaml configuration
+# This file defines which contracts to include and how to generate SDKs
+
+# Global artifact source configuration
+artifactSources:
+  defaults:
+    foundryOut: ../smart-contracts/out
+    # hardhatOut: ./artifacts  # Optional Hardhat path
+
+  # Optional: Cache artifacts locally
+  # cache:
+  #   mode: none  # none | copy | link
+  #   dir: ./.abikit/artifacts-cache
+
+# Contracts with inline interface relationships and optional artifact overrides
+contracts:
+  MyContract:
+    implements: [IMyContract]
+    tags: [core, main]
+    # Uses default artifactSources.defaults.foundryOut
+
+  HelperContract:
+    implements: [IHelper]
+    tags: [utility, core]
+
+  TokenContract:
+    implements: [IERC20]
+    tags: [token]
+
+  NFTContract:
+    implements: [IERC721]
+    tags: [nft]
+
+  # Example: Contract from a different repository
+  # ExternalContract:
+  #   implements: [IExternal]
+  #   artifact:
+  #     project: foundry
+  #     outDir: ../../external-repo/out
+
+# Interface contracts (auto-detected by I-prefix naming)
+interfaces:
+  - IMyContract
+  - IHelper
+  - IERC20
+  - IERC721
+
+# Generation configuration
+generation:
+  # Target SDK configurations
+  targets:
+    # TypeScript SDK with viem
+    - language: ts
+      outDir: ./sdk/typescript
+      options:
+        transport: viem
+        emitHooks: false
+        bigintStyle: native
+        emitStructsOnly: true
+        packageName: "@yourproject/contracts"
+        packageVersion: "1.0.0"
+        emitFactories: true
+        emitCreate2Helpers: true
+        decodeCustomErrors: true
+
+    # Python SDK with web3.py
+    - language: python
+      outDir: ./sdk/python
+      options:
+        emitAsync: true
+        pydanticVersion: 2
+        strictTypes: true
+        eventStreaming:
+          websocket: true
+          defaultBatchSize: 100
+        packageName: myproject_contracts
+        packageVersion: "1.0.0"
+        emitFactories: true
+        emitCreate2Helpers: true
+        format: black
+        lint: ruff
+
+  # Functions to ignore globally
+  ignoreFunctions:
+    global:
+      - authority
+      - changeAuthority
+    # Per-contract function ignores
+    contracts:
+      MyContract:
+        - internalHelper
+
+  # Type generation configuration
+  types:
+    structsOnly: true
+
+# Network configurations (optional)
+networks:
+  baseSepolia:
+    chainId: 84532
+    name: "Base Sepolia"
+    rpc: "https://sepolia.base.org"
+    explorer: "https://sepolia.basescan.org"
+    contracts:
+      MyContract: "0x..."
+      HelperContract: "0x..."
+
+  base:
+    chainId: 8453
+    name: "Base Mainnet"
+    rpc: "https://mainnet.base.org"
+    explorer: "https://basescan.org"
+    contracts:
+      MyContract: "0x..."
+      HelperContract: "0x..."

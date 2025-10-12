@@ -1,0 +1,161 @@
+---
+title: Install Script
+description: Detailed documentation of the abikit installer script that sets up the tool and configures your shell environment
+prev:
+  title: Installation
+  slug: installation
+next:
+  title: Update Script
+  slug: update-script
+---
+
+# Install Script
+
+The abikit installer script sets up the tool and configures your shell environment.
+
+## Quick Install
+
+```bash
+curl -L https://abikit.ahloop.com/install | bash
+```
+
+## Script Preview
+
+Here's what the installer script does:
+
+```bash
+#!/usr/bin/env bash
+set -eo pipefail
+
+echo "Installing abikit..."
+
+BASE_DIR="${XDG_CONFIG_HOME:-$HOME}"
+ABIKIT_DIR="${ABIKIT_DIR:-"$BASE_DIR/.abikit"}"
+BIN_DIR="$ABIKIT_DIR/bin"
+UP_URL="https://abikit.ahloop.com/abikitup"
+
+# Create the .abikit bin directory if it doesn't exist
+mkdir -p "$BIN_DIR"
+
+# Download abikitup script
+echo "Downloading abikitup..."
+if command -v curl >/dev/null 2>&1; then
+    curl -sSfL "$UP_URL" -o "$BIN_DIR/abikitup" && chmod +x "$BIN_DIR/abikitup"
+elif command -v wget >/dev/null 2>&1; then
+    wget -qO "$BIN_DIR/abikitup" "$UP_URL" && chmod +x "$BIN_DIR/abikitup"
+else
+    echo "Error: curl or wget is required to download abikitup"
+    exit 1
+fi
+
+# Detect shell and profile file
+case $SHELL in
+*/zsh)
+    PROFILE="${ZDOTDIR-"$HOME"}/.zshenv"
+    PREF_SHELL=zsh
+    ;;
+*/bash)
+    PROFILE=$HOME/.bashrc
+    PREF_SHELL=bash
+    ;;
+*/fish)
+    PROFILE=$HOME/.config/fish/config.fish
+    PREF_SHELL=fish
+    ;;
+*/ash)
+    PROFILE=$HOME/.profile
+    PREF_SHELL=ash
+    ;;
+*)
+    echo "abikit: could not detect shell, manually add ${BIN_DIR} to your PATH."
+    exit 1
+esac
+
+# Only add abikit directory to PATH if it isn't already there
+if [[ ":$PATH:" != *":${BIN_DIR}:"* ]]; then
+    # Add the abikit directory to the path and ensure the old PATH variables remain
+    if [[ "$PREF_SHELL" == "fish" ]]; then
+        echo >> "$PROFILE" && echo "fish_add_path -a \"$BIN_DIR\"" >> "$PROFILE"
+    else
+        echo >> "$PROFILE" && echo "export PATH=\"\$PATH:$BIN_DIR\"" >> "$PROFILE"
+    fi
+fi
+
+echo
+echo "Detected your preferred shell is $PREF_SHELL and added abikit to PATH."
+echo
+
+# Run abikitup to install abikit via npm
+"$BIN_DIR/abikitup"
+
+echo
+echo "Installation complete!"
+echo "Run 'source $PROFILE' or start a new terminal session to use abikit."
+echo "Then, run 'abikit --help' to get started."
+```
+
+## What It Does
+
+1. **Creates Directory**: Sets up `~/.abikit/bin` for the abikit installation
+2. **Downloads Updater**: Downloads the `abikitup` script for future updates
+3. **Detects Shell**: Automatically detects your shell (zsh, bash, fish, ash)
+4. **Updates PATH**: Adds abikit to your shell's PATH environment variable
+5. **Installs abikit**: Runs the updater script to install abikit via npm
+
+## Supported Shells
+
+- **zsh** (updates `~/.zshenv`)
+- **bash** (updates `~/.bashrc`)
+- **fish** (updates `~/.config/fish/config.fish`)
+- **ash** (updates `~/.profile`)
+
+## Manual Installation
+
+If you prefer to install manually:
+
+```bash
+# Install via npm
+npm install -g abikit
+
+# Or install locally in your project
+npm install --save-dev abikit
+```
+
+## Troubleshooting
+
+### "abikit: command not found"
+
+After installation, restart your terminal or source your shell profile:
+
+```bash
+# For bash
+source ~/.bashrc
+
+# For zsh
+source ~/.zshenv
+
+# For fish
+source ~/.config/fish/config.fish
+```
+
+### Permission Issues
+
+If you encounter permission issues:
+
+```bash
+# Ensure the directory exists and has correct permissions
+mkdir -p ~/.abikit/bin
+chmod 755 ~/.abikit/bin
+```
+
+## Security
+
+The installer script:
+- Uses `set -eo pipefail` for safe execution
+- Only modifies your shell profile to add abikit to PATH
+- Downloads scripts over HTTPS
+- Requires explicit user confirmation (piping to bash)
+
+## Next Steps
+
+After installation, check out the [CLI Reference](/cli-reference) to learn about available commands.

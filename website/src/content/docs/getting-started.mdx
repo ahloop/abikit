@@ -1,0 +1,131 @@
+---
+title: Getting Started
+description: Quick start guide to get up and running with abikit and generate multi-language SDKs from your smart contracts
+next:
+  title: Installation
+  slug: installation
+---
+
+# Getting Started
+
+Welcome to abikit! This guide will help you get up and running with abikit to generate multi-language SDKs from your smart contracts.
+
+## What is abikit?
+
+abikit is a powerful tool that automatically generates type-safe SDKs in multiple languages (TypeScript, Python) from your smart contract artifacts. It supports both Foundry and Hardhat projects and creates fully-typed, production-ready SDKs.
+
+## Quick Start
+
+### 1. Install abikit
+
+The easiest way to install abikit is using our installer script:
+
+```bash
+curl -L https://abikit.ahloop.com/install | bash
+```
+
+Then restart your terminal or source your shell profile:
+
+```bash
+# For bash
+source ~/.bashrc
+
+# For zsh  
+source ~/.zshenv
+```
+
+### 2. Initialize Your Project
+
+Navigate to your Foundry or Hardhat project and run:
+
+```bash
+# Build your contracts first
+forge build
+
+# Initialize abikit configuration
+abikit init
+```
+
+This creates a `contracts.yaml` file with all your discovered contracts.
+
+### 3. Configure Generation
+
+Edit the generated `contracts.yaml` file to add your target languages:
+
+```yaml
+generation:
+  targets:
+    - language: ts
+      outDir: ./sdk/typescript
+      options:
+        transport: viem
+        packageName: my-contracts
+    
+    - language: python
+      outDir: ./sdk/python
+      options:
+        packageName: my_contracts
+```
+
+### 4. Generate SDKs
+
+Run the build command to generate your SDKs:
+
+```bash
+abikit build
+```
+
+This creates fully-typed SDKs in your specified output directories.
+
+## Example Workflow
+
+Here's a complete example of using abikit with a Foundry project:
+
+```bash
+# 1. Create a new Foundry project
+forge init my-contracts
+cd my-contracts
+
+# 2. Build contracts
+forge build
+
+# 3. Install abikit
+curl -L https://abikit.ahloop.com/install | bash
+source ~/.bashrc
+
+# 4. Initialize configuration
+abikit init
+
+# 5. Edit contracts.yaml to add targets
+vim contracts.yaml
+
+# 6. Generate SDKs
+abikit build
+
+# 7. Use your generated SDKs
+cd sdk/typescript
+npm install
+```
+
+## What's Generated
+
+abikit generates:
+
+- **TypeScript SDKs** with viem or ethers.js support
+- **Python SDKs** with web3.py integration
+- **Type definitions** for all contract functions and events
+- **Factory helpers** for contract deployment
+- **CREATE2 helpers** for deterministic addresses
+- **Custom error decoders** for better error handling
+
+## Next Steps
+
+- Learn about [Configuration](/configuration) options
+- Check out the [CLI Reference](/cli-reference) for all commands
+- See [Installation](/installation) for alternative install methods
+
+## Need Help?
+
+- Check the [CLI Reference](/cli-reference) for command details
+- Review [Configuration](/configuration) for advanced setup
+- Visit our [GitHub repository](https://github.com/ahloop/abikit) for issues and discussions
