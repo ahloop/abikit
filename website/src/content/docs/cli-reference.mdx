@@ -10,6 +10,14 @@ prev:
 
 abikit provides a powerful command-line interface for generating multi-language SDKs from smart contracts.
 
+## Version 0.2.2 Enhancements
+
+The latest version includes:
+- **Modular Generator Modules**: TypeScript and Python generators split into focused modules for better maintainability
+- **Enhanced SDK Output**: Generated SDKs now include event watchers, error decoders, and helper utilities
+- **Improved Validation**: Better configuration validation and error reporting
+- **Better Error Messages**: More descriptive error messages for debugging configuration issues
+
 ## Global Options
 
 ```bash
@@ -192,46 +200,4 @@ abikit build
 
 ### Development Workflow
 
-```bash
-# Make changes to contracts
-vim src/MyContract.sol
-
-# Rebuild contracts
-forge build
-
-# Regenerate SDKs
-abikit build
 ```
-
-### Troubleshooting
-
-```bash
-# List available contracts
-abikit list
-
-# Check artifact resolution
-abikit artifacts list
-
-# Validate configuration
-abikit validate
-
-# Clean old generated files
-abikit clean
-
-# Rebuild from scratch
-abikit build
-```
-
-## Exit Codes
-
-- `0` - Success
-- `1` - Error (validation failed, build failed, etc.)
-
-## Environment Variables
-
-- `ABIKIT_DIR` - Override default abikit directory (default: `~/.abikit`)
-
-## Next Steps
-
-Learn how to configure abikit for your project in the [Configuration](/configuration) guide.
-

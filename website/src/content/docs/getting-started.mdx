@@ -111,12 +111,24 @@ npm install
 
 abikit generates:
 
-- **TypeScript SDKs** with viem or ethers.js support
-- **Python SDKs** with web3.py integration
+- **TypeScript SDKs** with viem or ethers.js support and complete contract implementations
+- **Python SDKs** with web3.py integration and Pydantic type safety
 - **Type definitions** for all contract functions and events
+- **Event watchers** with full log retrieval and parsing capabilities
+- **Custom error decoders** for better error handling and debugging
+- **Function selectors** and static mappings for contract interactions
+- **Configuration management** with network support and runtime configuration
 - **Factory helpers** for contract deployment
 - **CREATE2 helpers** for deterministic addresses
-- **Custom error decoders** for better error handling
+
+## Generator Architecture (v0.2.2+)
+
+abikit now uses modular generators for improved maintainability and extensibility:
+
+- **TypeScript Generator**: Splits generation into 10+ focused modules handling config, contracts, interfaces, types, signatures, errors, events, and utilities
+- **Python Generator**: Applies the same modular structure with Python-specific implementations
+- **Factory Pattern**: Easy to extend with new language targets or custom generators
+- **Better Error Handling**: Improved error recovery and validation throughout the generation pipeline
 
 ## Next Steps
 

@@ -1,7 +1,7 @@
 {
     "name": "abikit",
-    "version": "0.1.0",
-    "description": "Multi-language SDK generator for smart contracts (TypeScript/Python)",
+    "version": "0.2.2",
+    "description": "Multi-language SDK generator for smart contracts with unified SDK classes (TypeScript/Python)",
     "main": "dist/index.js",
     "bin": {
         "abikit": "dist/cli.js",
