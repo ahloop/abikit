@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+echo "Updating abikit..."
+
+# Check if npm is available
+if ! command -v npm >/dev/null 2>&1; then
+    echo "Error: npm not found. Please install Node.js from https://nodejs.org"
+    exit 1
+fi
+
+# Check if node is available
+if ! command -v node >/dev/null 2>&1; then
+    echo "Error: node not found. Please install Node.js from https://nodejs.org"
+    exit 1
+fi
+
+# Install or update abikit globally
+npm install -g abikit@latest
+
+echo "✓ abikit updated successfully!"
+echo
+echo "Run 'abikit --help' to get started."
+

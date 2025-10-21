@@ -1,0 +1,368 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Contract SDK Generator Configuration",
+    "description": "Configuration schema for generating multi-language smart contract SDKs",
+    "type": "object",
+    "required": [
+        "generation"
+    ],
+    "properties": {
+        "contracts": {
+            "oneOf": [
+                {
+                    "type": "array",
+                    "description": "Simple list of contract names",
+                    "items": {
+                        "type": "string"
+                    }
+                },
+                {
+                    "type": "object",
+                    "description": "Contracts with optional metadata",
+                    "additionalProperties": {
+                        "type": "object",
+                        "properties": {
+                            "type": {
+                                "type": "string",
+                                "enum": [
+                                    "implementation",
+                                    "interface"
+                                ],
+                                "description": "Contract type (auto-detected from name if omitted)"
+                            },
+                            "implements": {
+                                "type": "array",
+                                "description": "Interfaces this contract implements",
+                                "items": {
+                                    "type": "string"
+                                }
+                            },
+                            "tags": {
+                                "type": "array",
+                                "description": "Optional tags for categorization",
+                                "items": {
+                                    "type": "string"
+                                }
+                            },
+                            "artifact": {
+                                "type": "object",
+                                "description": "Per-contract artifact source override",
+                                "properties": {
+                                    "project": {
+                                        "type": "string",
+                                        "enum": [
+                                            "foundry",
+                                            "hardhat"
+                                        ],
+                                        "description": "Project type"
+                                    },
+                                    "outDir": {
+                                        "type": "string",
+                                        "description": "Custom output directory for this contract"
+                                    },
+                                    "file": {
+                                        "type": "string",
+                                        "description": "Custom file path within outDir (relative)"
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            ]
+        },
+        "interfaces": {
+            "type": "array",
+            "description": "Interface contracts (optional if using I-prefix naming)",
+            "items": {
+                "type": "string"
+            }
+        },
+        "artifactSources": {
+            "type": "object",
+            "description": "Artifact source configuration",
+            "properties": {
+                "defaults": {
+                    "type": "object",
+                    "description": "Default artifact paths",
+                    "properties": {
+                        "foundryOut": {
+                            "type": "string",
+                            "description": "Default Foundry out directory"
+                        },
+                        "hardhatOut": {
+                            "type": "string",
+                            "description": "Default Hardhat artifacts directory"
+                        }
+                    }
+                },
+                "cache": {
+                    "type": "object",
+                    "description": "Artifact caching configuration",
+                    "properties": {
+                        "mode": {
+                            "type": "string",
+                            "enum": [
+                                "none",
+                                "copy",
+                                "link"
+                            ],
+                            "description": "Cache mode",
+                            "default": "none"
+                        },
+                        "dir": {
+                            "type": "string",
+                            "description": "Cache directory path",
+                            "default": "./.abikit/artifacts-cache"
+                        }
+                    }
+                },
+                "watch": {
+                    "type": "object",
+                    "description": "Watch configuration",
+                    "properties": {
+                        "enabled": {
+                            "type": "boolean",
+                            "description": "Enable watch mode",
+                            "default": false
+                        },
+                        "debounceMs": {
+                            "type": "number",
+                            "description": "Debounce delay in milliseconds",
+                            "default": 300
+                        }
+                    }
+                }
+            }
+        },
+        "generation": {
+            "type": "object",
+            "required": [
+                "targets"
+            ],
+            "properties": {
+                "targets": {
+                    "type": "array",
+                    "description": "Target language configurations",
+                    "minItems": 1,
+                    "items": {
+                        "type": "object",
+                        "required": [
+                            "language",
+                            "outDir"
+                        ],
+                        "properties": {
+                            "language": {
+                                "type": "string",
+                                "enum": [
+                                    "ts",
+                                    "python"
+                                ],
+                                "description": "Target language"
+                            },
+                            "outDir": {
+                                "type": "string",
+                                "description": "Output directory for generated SDK"
+                            },
+                            "options": {
+                                "type": "object",
+                                "description": "Language-specific generation options",
+                                "properties": {
+                                    "sdk": {
+                                        "type": "object",
+                                        "description": "SDK generation configuration",
+                                        "properties": {
+                                            "enabled": {
+                                                "type": "boolean",
+                                                "description": "Enable SDK generation",
+                                                "default": false
+                                            },
+                                            "className": {
+                                                "type": "string",
+                                                "description": "Exported class name",
+                                                "default": "ContractSDK"
+                                            },
+                                            "fileName": {
+                                                "type": "string",
+                                                "description": "Output file name (without extension)",
+                                                "default": "sdk"
+                                            },
+                                            "lazyLoad": {
+                                                "type": "boolean",
+                                                "description": "Enable lazy loading of contracts",
+                                                "default": true
+                                            },
+                                            "skipZeroAddresses": {
+                                                "type": "boolean",
+                                                "description": "Skip contracts with zero addresses",
+                                                "default": true
+                                            }
+                                        },
+                                        "additionalProperties": false
+                                    }
+                                }
+                            }
+                        }
+                    }
+                },
+                "ignoreFunctions": {
+                    "type": "object",
+                    "description": "Functions to ignore during generation",
+                    "properties": {
+                        "global": {
+                            "type": "array",
+                            "description": "Functions to ignore globally across all contracts",
+                            "items": {
+                                "type": "string"
+                            }
+                        },
+                        "contracts": {
+                            "type": "object",
+                            "description": "Functions to ignore per contract",
+                            "additionalProperties": {
+                                "type": "array",
+                                "items": {
+                                    "type": "string"
+                                }
+                            }
+                        }
+                    }
+                },
+                "interfaceRelationships": {
+                    "type": "object",
+                    "description": "Map implementations to their interfaces",
+                    "additionalProperties": {
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                },
+                "types": {
+                    "type": "object",
+                    "properties": {
+                        "structsOnly": {
+                            "type": "boolean",
+                            "description": "Only generate types for custom structs/enums",
+                            "default": true
+                        }
+                    }
+                },
+                "artifactPaths": {
+                    "type": "object",
+                    "properties": {
+                        "foundryOut": {
+                            "type": "string",
+                            "description": "Path to Foundry out directory",
+                            "default": "./out"
+                        },
+                        "hardhatOut": {
+                            "type": "string",
+                            "description": "Path to Hardhat artifacts directory"
+                        }
+                    }
+                }
+            }
+        },
+        "networks": {
+            "type": "object",
+            "description": "Network configurations with contract addresses",
+            "additionalProperties": {
+                "type": "object",
+                "properties": {
+                    "chainId": {
+                        "type": "number"
+                    },
+                    "name": {
+                        "type": "string"
+                    },
+                    "rpc": {
+                        "type": "string"
+                    },
+                    "explorer": {
+                        "type": "string"
+                    },
+                    "contracts": {
+                        "type": "object",
+                        "additionalProperties": {
+                            "oneOf": [
+                                {
+                                    "type": "string",
+                                    "description": "Simple address string"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "name": {
+                                            "type": "string",
+                                            "description": "Contract class name (defaults to key)"
+                                        },
+                                        "address": {
+                                            "type": "string",
+                                            "description": "Contract address"
+                                        }
+                                    },
+                                    "required": [
+                                        "address"
+                                    ],
+                                    "additionalProperties": false
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "signatures": {
+            "type": "object",
+            "description": "EIP-712 signature generation configuration",
+            "properties": {
+                "enabled": {
+                    "type": "boolean",
+                    "description": "Enable signature generation",
+                    "default": false
+                },
+                "items": {
+                    "type": "array",
+                    "description": "Signature types to generate",
+                    "items": {
+                        "type": "object",
+                        "required": [
+                            "contract",
+                            "primaryType",
+                            "domain"
+                        ],
+                        "properties": {
+                            "contract": {
+                                "type": "string",
+                                "description": "Contract name to extract types from"
+                            },
+                            "primaryType": {
+                                "type": "string",
+                                "description": "Primary EIP-712 type"
+                            },
+                            "domain": {
+                                "type": "object",
+                                "description": "EIP-712 domain configuration",
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "description": "Domain name"
+                                    },
+                                    "version": {
+                                        "type": "string",
+                                        "description": "Domain version"
+                                    }
+                                },
+                                "required": [
+                                    "name",
+                                    "version"
+                                ]
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

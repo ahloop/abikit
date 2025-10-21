@@ -1,0 +1,117 @@
+---
+title: Update Script
+description: Documentation for the abikitup updater script that updates abikit to the latest version
+prev:
+  title: Install Script
+  slug: install-script
+next:
+  title: Configuration
+  slug: configuration
+---
+
+# Update Script
+
+The abikit updater script (`abikitup`) updates abikit to the latest version.
+
+## Quick Update
+
+```bash
+abikitup
+```
+
+## Script Preview
+
+Here's what the updater script does:
+
+```bash
+#!/usr/bin/env bash
+set -euo pipefail
+
+echo "Updating abikit..."
+
+# Check if npm is available
+if ! command -v npm >/dev/null 2>&1; then
+    echo "Error: npm not found. Please install Node.js from https://nodejs.org"
+    exit 1
+fi
+
+# Check if node is available
+if ! command -v node >/dev/null 2>&1; then
+    echo "Error: node not found. Please install Node.js from https://nodejs.org"
+    exit 1
+fi
+
+# Install or update abikit globally
+npm install -g abikit@latest
+
+echo "✓ abikit updated successfully!"
+echo
+echo "Run 'abikit --help' to get started."
+```
+
+## What It Does
+
+1. **Checks Dependencies**: Verifies that Node.js and npm are installed
+2. **Updates Package**: Runs `npm install -g abikit@latest` to get the latest version
+3. **Confirms Success**: Shows a success message when the update completes
+
+## Requirements
+
+- **Node.js** >= 16.0.0
+- **npm** (comes with Node.js)
+
+## Manual Update
+
+You can also update manually:
+
+```bash
+# Update via npm
+npm install -g abikit@latest
+
+# Or update locally in your project
+npm update abikit
+```
+
+## Check Current Version
+
+To see what version you currently have installed:
+
+```bash
+abikit --version
+```
+
+## Troubleshooting
+
+### "npm not found"
+
+If you get an npm error, install Node.js from [nodejs.org](https://nodejs.org).
+
+### "abikitup: command not found"
+
+If the updater script isn't found, you can run it directly:
+
+```bash
+# Download and run the updater
+curl -L https://abikit.ahloop.com/abikitup | bash
+```
+
+### Permission Issues
+
+If you encounter permission issues with npm:
+
+```bash
+# Use sudo (not recommended for global installs)
+sudo npm install -g abikit@latest
+
+# Or configure npm to use a different directory
+npm config set prefix ~/.npm-global
+export PATH=~/.npm-global/bin:$PATH
+```
+
+## Automatic Updates
+
+The installer script automatically downloads `abikitup` to `~/.abikit/bin/abikitup`, making it available in your PATH for easy updates.
+
+## Next Steps
+
+After updating, check out the [CLI Reference](/cli-reference) to see what's new.

@@ -1,0 +1,263 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+    --background: #ffffff;
+    --foreground: #171717;
+    --font-instrument-sans: 'Instrument Sans', system-ui, sans-serif;
+    --font-instrument-serif: 'Instrument Serif', ui-serif, Georgia, serif;
+}
+
+body {
+    background: #ffffff;
+    color: #171717;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen', 'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue', sans-serif;
+    min-height: 100vh;
+}
+
+/* Typography Utilities */
+@layer utilities {
+
+    /* Primary (Geist) */
+    .type-display-xl {
+        @apply font-sans font-bold text-[3.0rem] leading-[3.5rem];
+    }
+
+    .type-display-lg {
+        @apply font-sans font-bold text-[2.0rem] leading-[2.4rem];
+    }
+
+    .type-display-sm {
+        @apply font-sans font-bold text-[1.5rem] leading-[1.75rem];
+    }
+
+    .type-body {
+        @apply font-sans font-normal text-[1.0rem] leading-[1.5rem];
+    }
+
+    .type-body-sm {
+        @apply font-sans font-normal text-[0.875rem] leading-[1.25rem];
+    }
+
+    .type-body-xs {
+        @apply font-sans font-normal text-[0.75rem] leading-[1.0rem];
+    }
+
+    /* Primary Mono (Geist Mono) */
+    .type-display-xl--mono {
+        @apply font-mono font-bold text-[3.0rem] leading-[3.5rem];
+    }
+
+    .type-display-lg--mono {
+        @apply font-mono font-bold text-[2.0rem] leading-[2.4rem];
+    }
+
+    .type-display-sm--mono {
+        @apply font-mono font-bold text-[1.5rem] leading-[1.75rem];
+    }
+
+    .type-body--mono {
+        @apply font-mono font-normal text-[1.0rem] leading-[1.5rem];
+    }
+
+    .type-body--mono--semibold {
+        @apply font-mono font-semibold text-[1.0rem] leading-[1.5rem];
+    }
+
+    .type-body-sm--mono {
+        @apply font-mono font-normal text-[0.875rem] leading-[1.25rem];
+    }
+
+    .type-body-xs--mono {
+        @apply font-mono font-normal text-[0.75rem] leading-[1.0rem];
+    }
+
+    /* Secondary (Instrument Sans) */
+    .type-display-xl--instrument {
+        @apply font-[var(--font-instrument-sans)] font-bold text-[3.0rem] leading-[3.5rem];
+    }
+
+    .type-display-lg--instrument {
+        @apply font-[var(--font-instrument-sans)] font-bold text-[2.0rem] leading-[2.4rem];
+    }
+
+    .type-display-sm--instrument {
+        @apply font-[var(--font-instrument-sans)] font-bold text-[1.5rem] leading-[1.75rem];
+    }
+
+    .type-body--instrument {
+        @apply font-[var(--font-instrument-sans)] font-normal text-[1.0rem] leading-[1.5rem];
+    }
+
+    .type-body-sm--instrument {
+        @apply font-[var(--font-instrument-sans)] font-normal text-[0.875rem] leading-[1.25rem];
+    }
+
+    .type-body-xs--instrument {
+        @apply font-[var(--font-instrument-sans)] font-normal text-[0.75rem] leading-[1.0rem];
+    }
+
+    /* Tertiary (Instrument Serif) */
+    .type-display-xl--serif {
+        @apply font-[var(--font-instrument-serif)] font-bold text-[3.0rem] leading-[3.5rem];
+    }
+
+    .type-display-lg--serif {
+        @apply font-[var(--font-instrument-serif)] font-bold text-[2.0rem] leading-[2.4rem];
+    }
+
+    .type-display-sm--serif {
+        @apply font-[var(--font-instrument-serif)] font-bold text-[1.5rem] leading-[1.75rem];
+    }
+
+    .type-body--serif {
+        @apply font-[var(--font-instrument-serif)] font-normal text-[1.0rem] leading-[1.5rem];
+    }
+
+    .type-body-sm--serif {
+        @apply font-[var(--font-instrument-serif)] font-normal text-[0.875rem] leading-[1.25rem];
+    }
+
+    .type-body-xs--serif {
+        @apply font-[var(--font-instrument-serif)] font-normal text-[0.75rem] leading-[1.0rem];
+    }
+
+    /* Prevent text shift on font weight changes */
+    .no-text-shift {
+        text-shadow: 0 0 0 transparent, 0 0 0 transparent;
+    }
+
+    .no-text-shift:hover {
+        text-shadow: 0 0 0 currentColor, 0 0 0 currentColor;
+    }
+}
+
+/* Component Styles */
+@layer components {
+
+    /* Button styles */
+    .btn-primary {
+        @apply bg-gray-900 text-white hover:bg-gray-800 transition-colors px-6 py-3 rounded-lg font-medium;
+    }
+
+    .btn-secondary {
+        @apply bg-gray-100 text-gray-900 hover:bg-gray-200 transition-colors px-6 py-3 rounded-lg font-medium border border-gray-300;
+    }
+
+    /* Footer styles */
+    .footer-primary {
+        @apply bg-gray-900 text-white;
+    }
+}
+
+/* Glass morphism styles */
+.glass {
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(8px) saturate(120%);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow:
+        0 2px 8px 0 rgba(31, 38, 135, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+}
+
+.glass-dark {
+    background: rgba(0, 0, 0, 0.25);
+    backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    box-shadow:
+        0 8px 32px 0 rgba(0, 0, 0, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.1);
+    border-radius: 12px;
+}
+
+.glass-light {
+    background: rgba(255, 255, 255, 0.4);
+    backdrop-filter: blur(25px) saturate(150%);
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    box-shadow:
+        0 4px 4px 0 rgba(31, 38, 135, 0.1),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    border-radius: 12px;
+}
+
+.glass-tinted {
+    background: rgba(212, 195, 191, 0.3);
+    backdrop-filter: blur(20px) saturate(180%);
+    border: 1px solid rgba(212, 195, 191, 0.4);
+    box-shadow:
+        0 6px 24px 0 rgba(212, 195, 191, 0.3),
+        inset 0 1px 0 rgba(255, 255, 255, 0.3);
+    border-radius: 12px;
+}
+
+/* Prose styles for documentation */
+.prose {
+    color: #171717;
+}
+
+.prose h1 {
+    @apply type-display-lg--mono text-neutral-darker mb-8;
+}
+
+.prose h2 {
+    @apply type-display-sm--mono text-neutral-darker mb-6 mt-12;
+}
+
+.prose h3 {
+    @apply type-display-sm--mono text-neutral-darker mb-4 mt-8;
+}
+
+.prose h4 {
+    @apply type-body--mono--semibold text-neutral-darker mb-3 mt-6;
+}
+
+.prose p {
+    @apply type-body text-neutral-dark mb-6;
+}
+
+.prose ul,
+.prose ol {
+    @apply type-body text-neutral-dark mb-6;
+}
+
+.prose li {
+    @apply mb-2;
+}
+
+.prose code {
+    @apply bg-ahloop-dusty-10 text-neutral-darker px-2 py-1 rounded text-sm font-mono;
+}
+
+.prose pre {
+    @apply bg-ahloop-void rounded-xl p-6 overflow-x-auto mb-6;
+}
+
+.prose pre code {
+    @apply bg-transparent text-neutral p-0;
+}
+
+.prose blockquote {
+    @apply border-l-4 border-ahloop-dusty-40 pl-6 italic text-neutral-dark mb-6;
+}
+
+.prose a {
+    @apply text-neutral-darker hover:text-neutral-dark underline;
+}
+
+.prose strong {
+    @apply font-semibold text-neutral-darker;
+}
+
+.prose table {
+    @apply w-full border-collapse mb-6;
+}
+
+.prose th {
+    @apply type-body--mono--semibold text-neutral-darker border-b border-ahloop-dusty-20 pb-2;
+}
+
+.prose td {
+    @apply type-body text-neutral-dark border-b border-ahloop-dusty-10 py-2;
+}

@@ -1,0 +1,257 @@
+---
+title: CLI Reference
+description: Complete command-line interface reference for abikit including all commands, options, and common workflows
+prev:
+  title: Artifact Caching
+  slug: artifact-caching
+---
+
+# CLI Reference
+
+abikit provides a powerful command-line interface for generating multi-language SDKs from smart contracts.
+
+## Version 0.2.3 Enhancements
+
+The latest version includes:
+- **Artifact Caching**: Copy artifacts to local `artifacts/` folder for faster builds and offline development
+- **Cache Management**: New `abikit cache stats` and `abikit cache clear` commands for cache management
+- **Modular Generator Modules**: TypeScript and Python generators split into focused modules for better maintainability
+- **Enhanced SDK Output**: Generated SDKs now include event watchers, error decoders, and helper utilities
+- **Improved Validation**: Better configuration validation and error reporting
+- **Better Error Messages**: More descriptive error messages for debugging configuration issues
+
+## Global Options
+
+```bash
+abikit [options] [command]
+```
+
+**Options:**
+- `-V, --version` - Output the version number
+- `-h, --help` - Display help for command
+
+## Commands
+
+### init
+
+Initialize a `contracts.yaml` configuration file from existing artifacts.
+
+```bash
+abikit init [options]
+```
+
+**Options:**
+- `-f, --foundry-out <path>` - Foundry out directory (default: `"./out"`)
+- `-h, --hardhat-out <path>` - Hardhat artifacts directory
+- `-o, --output <path>` - Output config file path (default: `"./contracts.yaml"`)
+
+**Example:**
+```bash
+# Initialize from default Foundry out directory
+abikit init
+
+# Initialize from custom Foundry directory
+abikit init -f ./foundry-out
+
+# Initialize with Hardhat artifacts
+abikit init -h ./artifacts
+```
+
+The init command scans your artifacts directory and generates a `contracts.yaml` file with all discovered contracts.
+
+### validate
+
+Validate a `contracts.yaml` configuration file.
+
+```bash
+abikit validate [config]
+```
+
+**Arguments:**
+- `config` - Path to contracts.yaml (default: `"./contracts.yaml"`)
+
+**Example:**
+```bash
+# Validate default config
+abikit validate
+
+# Validate specific config
+abikit validate ./custom-config.yaml
+```
+
+The validate command checks your configuration against the JSON Schema and reports any errors or missing required fields.
+
+### build
+
+Generate SDKs from contracts based on configuration.
+
+```bash
+abikit build [config]
+```
+
+**Arguments:**
+- `config` - Path to contracts.yaml (default: `"./contracts.yaml"`)
+
+**Example:**
+```bash
+# Build with default config
+abikit build
+
+# Build with custom config
+abikit build ./custom-config.yaml
+```
+
+The build command:
+1. Loads your configuration
+2. Loads contract artifacts from Foundry/Hardhat
+3. Normalizes ABIs into a contract graph
+4. Applies ignore rules and interface relationships
+5. Invokes language-specific generators for each target
+6. Outputs fully-typed SDKs
+
+### list
+
+List all available contracts from artifacts.
+
+```bash
+abikit list [options]
+```
+
+**Options:**
+- `-f, --foundry-out <path>` - Foundry out directory (default: `"./out"`)
+- `-h, --hardhat-out <path>` - Hardhat artifacts directory
+
+**Example:**
+```bash
+# List contracts from default Foundry out directory
+abikit list
+
+# List from custom directory
+abikit list -f ./foundry-out
+```
+
+The list command displays all contract names found in your artifacts directory, helping you identify which contracts are available for SDK generation.
+
+### clean
+
+Remove generated SDK files.
+
+```bash
+abikit clean [config]
+```
+
+**Arguments:**
+- `config` - Path to contracts.yaml (default: `"./contracts.yaml"`)
+
+**Example:**
+```bash
+# Clean generated files from default config
+abikit clean
+
+# Clean with custom config
+abikit clean ./custom-config.yaml
+```
+
+The clean command removes all output directories specified in your configuration's targets.
+
+### artifacts list
+
+List resolved artifact paths for all contracts in your configuration.
+
+```bash
+abikit artifacts list [config]
+```
+
+**Arguments:**
+- `config` - Path to contracts.yaml (default: `"./contracts.yaml"`)
+
+**Example:**
+```bash
+# List resolved artifact paths
+abikit artifacts list
+
+# List with custom config
+abikit artifacts list ./custom-config.yaml
+```
+
+The artifacts list command shows where each contract's artifact is resolved from, helping you verify that all contracts can be found and debug artifact resolution issues.
+
+### cache
+
+Manage artifact cache for faster builds.
+
+```bash
+abikit cache [command] [config]
+```
+
+**Subcommands:**
+
+#### cache stats
+
+Show cache statistics including directory, cached artifact count, and last cache time.
+
+```bash
+abikit cache stats [config]
+```
+
+**Arguments:**
+- `config` - Path to contracts.yaml (default: `"./contracts.yaml"`)
+
+**Example:**
+```bash
+# Show cache statistics
+abikit cache stats
+
+# Show stats for specific config
+abikit cache stats ./custom-config.yaml
+```
+
+#### cache clear
+
+Clear the artifact cache directory.
+
+```bash
+abikit cache clear [config]
+```
+
+**Arguments:**
+- `config` - Path to contracts.yaml (default: `"./contracts.yaml"`)
+
+**Example:**
+```bash
+# Clear cache for default config
+abikit cache clear
+
+# Clear cache for specific config
+abikit cache clear ./custom-config.yaml
+```
+
+The cache commands help manage the artifact caching feature, which copies contract artifacts to a local directory for faster builds and offline development.
+
+## Common Workflows
+
+### First-time Setup
+
+```bash
+# Navigate to your contracts project
+cd my-foundry-project
+
+# Build contracts
+forge build
+
+# Initialize abikit configuration
+abikit init
+
+# Edit configuration (add targets, ignore functions, etc.)
+vim contracts.yaml
+
+# Validate configuration
+abikit validate
+
+# Generate SDKs
+abikit build
+```
+
+### Development Workflow
+
+```

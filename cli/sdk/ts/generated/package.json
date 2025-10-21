@@ -1,0 +1,38 @@
+{
+  "name": "@truffle-network/contract-sdk",
+  "version": "0.1.0",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "exports": {
+    ".": "./dist/index.js",
+    "./types": "./dist/types/index.js",
+    "./all": "./dist/all.js",
+    "./NetworkCore": "./dist/contracts/NetworkCore/index.js",
+    "./Token": "./dist/contracts/Token/index.js",
+    "./TokenVault": "./dist/contracts/TokenVault/index.js",
+    "./PaymentRouter": "./dist/contracts/PaymentRouter/index.js",
+    "./Registry": "./dist/contracts/Registry/index.js",
+    "./Authority": "./dist/contracts/Authority/index.js",
+    "./INetwork": "./dist/interfaces/INetwork/index.js",
+    "./IToken": "./dist/interfaces/IToken/index.js",
+    "./ITokenVault": "./dist/interfaces/ITokenVault/index.js",
+    "./IPaymentRouter": "./dist/interfaces/IPaymentRouter/index.js",
+    "./IRegistry": "./dist/interfaces/IRegistry/index.js",
+    "./IAuthority": "./dist/interfaces/IAuthority/index.js",
+    "./IReputationManager": "./dist/interfaces/IReputationManager/index.js",
+    "./IBidManager": "./dist/interfaces/IBidManager/index.js",
+    "./IAttestationManager": "./dist/interfaces/IAttestationManager/index.js",
+    "./IAccessControlled": "./dist/interfaces/IAccessControlled/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "test": "vitest"
+  },
+  "dependencies": {
+    "viem": "^2.21.0"
+  },
+  "devDependencies": {
+    "typescript": "^5.0.0",
+    "vitest": "^1.0.0"
+  }
+}

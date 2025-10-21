@@ -1,0 +1,327 @@
+# EIP-712 Signature Generation
+
+abikit automatically generates EIP-712 signature utilities for your smart contracts, extracting struct types directly from ABI files for maximum accuracy and maintainability.
+
+## Overview
+
+EIP-712 is a standard for typed structured data hashing and signing in Ethereum. abikit automatically:
+
+- **Extracts struct types** from your contract ABI files
+- **Generates signature utilities** for TypeScript and Python
+- **Handles nested structs** and complex type hierarchies
+- **Maintains type safety** across all generated modules
+
+## Configuration
+
+Enable signature generation in your `contracts.yaml`:
+
+```yaml
+signatures:
+  enabled: true
+  items:
+    - contract: YourContract
+      primaryType: YourStruct
+      domain:
+        name: "Your DApp"
+        version: "1"
+```
+
+### Example Configuration
+
+```yaml
+signatures:
+  enabled: true
+  items:
+    - contract: BidManager
+      primaryType: BidAuthorization
+      domain:
+        name: "Your DApp"
+        version: "1"
+    - contract: BidManager
+      primaryType: BidAuthorization
+      domain:
+        name: "Auction System"
+        version: "1"
+```
+
+## Generated Output
+
+### TypeScript
+
+abikit generates TypeScript signature modules with:
+
+```typescript
+// Auto-generated EIP-712 signature for BidAuthorization
+export interface BidAuthorization {
+  bid: Bid;
+  issuedAt: string;
+  expiresAt: string;
+}
+
+export const BIDAUTHORIZATION_TYPES = {
+  BidAuthorization: [
+    { name: 'bid', type: 'Bid' },
+    { name: 'issuedAt', type: 'uint64' },
+    { name: 'expiresAt', type: 'uint64' },
+  ],
+} as const;
+```
+
+### Python
+
+abikit generates Python signature modules with:
+
+```python
+from pydantic import BaseModel
+from typing import Dict, Any
+from eth_account.messages import encode_typed_data
+
+class BidAuthorization(BaseModel):
+    bid: Bid
+    issued_at: int
+    expires_at: int
+
+def build_bid_authorization_typed_data(
+    domain: Eip712Domain,
+    message: BidAuthorization
+) -> Dict[str, Any]:
+    return {
+        "domain": build_domain(domain),
+        "types": {
+            "BidAuthorization": [
+                {"name": "bid", "type": "Bid"},
+                {"name": "issuedAt", "type": "uint64"},
+                {"name": "expiresAt", "type": "uint64"},
+            ]
+        },
+        "primaryType": "BidAuthorization",
+        "message": message.model_dump(),
+    }
+```
+
+## Automatic Type Extraction
+
+abikit automatically extracts struct types from your contract ABI files:
+
+### Supported Sources
+
+- **Function Parameters**: Structs used in function inputs/outputs
+- **Event Parameters**: Structs used in event definitions
+- **Explicit Definitions**: Structs defined in contract source
+- **Nested Structs**: Complex hierarchies and dependencies
+
+### Type Normalization
+
+abikit automatically normalizes Solidity types for EIP-712:
+
+- `uint` → `uint256`
+- `int` → `int256`
+- `byte` → `bytes1`
+- Array types: `uint256[]`, `address[2]`
+- Custom structs: Preserved as-is
+
+## Nested Struct Support
+
+abikit handles complex struct hierarchies:
+
+```solidity
+struct ComplexAuthorization {
+    BidAuthorization auth;
+    AuthorizationPeriodSpend period;
+    uint256 additionalData;
+}
+
+struct AuthorizationPeriodSpend {
+    uint48 start;
+    uint48 end;
+    uint160 spend;
+}
+```
+
+abikit automatically:
+- Extracts all struct definitions
+- Resolves nested dependencies
+- Generates complete type hierarchies
+- Maintains proper type relationships
+
+## Usage Examples
+
+### TypeScript Usage
+
+```typescript
+import { BidAuthorization, BIDAUTHORIZATION_TYPES } from './signatures/bid-authorization';
+import { EIP712_DOMAIN } from './signatures/domain';
+
+// Create typed data
+const typedData = {
+  domain: EIP712_DOMAIN,
+  types: BIDAUTHORIZATION_TYPES,
+  primaryType: 'BidAuthorization',
+  message: {
+    bid: {
+      offererId: '0x123...',
+      requirements: { /* ... */ },
+      payment: { /* ... */ },
+      timing: { /* ... */ },
+      status: { /* ... */ }
+    },
+    issuedAt: '1640995200',
+    expiresAt: '1672531200'
+  }
+};
+
+// Sign with wallet
+const signature = await wallet.signTypedData(typedData);
+```
+
+### Python Usage
+
+```python
+from signatures.bid_authorization import (
+    BidAuthorization, 
+    build_bid_authorization_typed_data
+)
+from signatures.domain import Eip712Domain
+
+# Create typed data
+domain = Eip712Domain(
+    name="Your DApp",
+    version="1",
+    chain_id=8453
+)
+
+message = BidAuthorization(
+    bid={
+        "offererId": "0x123...",
+        "requirements": { /* ... */ },
+        "payment": { /* ... */ },
+        "timing": { /* ... */ },
+        "status": { /* ... */ }
+    },
+    issued_at=1640995200,
+    expires_at=1672531200
+)
+
+typed_data = build_bid_authorization_typed_data(domain, message)
+
+# Sign with account
+signed_message = account.sign_message(encode_typed_data(typed_data))
+```
+
+## Best Practices
+
+### Contract Structure
+
+Define your structs clearly in your Solidity contracts:
+
+```solidity
+// Good: Clear struct definition
+struct BidAuthorization {
+    Bid bid;
+    uint64 issuedAt;
+    uint64 expiresAt;
+}
+```
+
+### Domain Configuration
+
+Use meaningful domain names and versions:
+
+```yaml
+signatures:
+  items:
+    - contract: BidManager
+      primaryType: BidAuthorization
+      domain:
+        name: "Your DApp Name"  # Use your actual dApp name
+        version: "1"            # Increment on breaking changes
+```
+
+### Type Safety
+
+abikit maintains full type safety:
+
+- **TypeScript**: Strong typing with interfaces and type definitions
+- **Python**: Pydantic models with validation
+- **Runtime Safety**: Type checking at compile time and runtime
+
+## Troubleshooting
+
+### Missing Struct Types
+
+If abikit can't find your struct types:
+
+1. **Check ABI**: Ensure your struct is used in function parameters or events
+2. **Verify Contract**: Make sure the contract is included in your configuration
+3. **Fallback**: abikit falls back to hardcoded types if extraction fails
+
+### Type Mismatches
+
+If you see type mismatches:
+
+1. **Regenerate**: Run `abikit build` to regenerate with latest ABI
+2. **Check Solidity**: Verify your struct definitions in Solidity
+3. **Clear Cache**: Use `abikit clean` to clear generated files
+
+### Nested Struct Issues
+
+For complex nested structs:
+
+1. **Complete Definitions**: Ensure all nested structs are defined
+2. **Dependencies**: Check that all dependencies are available
+3. **Recursive Types**: Avoid circular dependencies
+
+## Advanced Features
+
+### Custom Type Mapping
+
+abikit automatically maps Solidity types to appropriate SDK types:
+
+- **Integers**: `uint256` → `string` (TypeScript) / `int` (Python)
+- **Addresses**: `address` → `string`
+- **Bytes**: `bytes32` → `string`
+- **Arrays**: `uint256[]` → `string[]` (TypeScript) / `List[int]` (Python)
+
+### Cross-Platform Consistency
+
+abikit ensures consistency between TypeScript and Python:
+
+- **Same Types**: Identical type definitions across platforms
+- **Same Logic**: Consistent signature generation logic
+- **Same Validation**: Identical validation rules
+
+### Performance Optimization
+
+abikit optimizes for performance:
+
+- **Lazy Loading**: Only loads types when needed
+- **Caching**: Caches extracted types for faster builds
+- **Incremental**: Only regenerates changed files
+
+## Migration Guide
+
+### From Manual Definitions
+
+If you were manually defining struct types:
+
+1. **Remove Hardcoded Types**: Delete manual type definitions
+2. **Enable Signatures**: Add signature configuration to `contracts.yaml`
+3. **Regenerate**: Run `abikit build` to generate automatic types
+4. **Update Imports**: Update your imports to use generated types
+
+### Breaking Changes
+
+abikit v0.2.5 introduces automatic type extraction:
+
+- **No Breaking Changes**: Existing configurations continue to work
+- **Enhanced Features**: New automatic extraction capabilities
+- **Backward Compatible**: Falls back to hardcoded types if needed
+
+## Support
+
+For issues with signature generation:
+
+1. **Check Documentation**: Review this guide for common issues
+2. **Verify Configuration**: Ensure your `contracts.yaml` is correct
+3. **Report Issues**: Open an issue on GitHub with your configuration
+4. **Community**: Join our Discord for help and discussions

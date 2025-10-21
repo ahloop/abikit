@@ -1,0 +1,169 @@
+# Example contracts.yaml configuration
+# This file defines which contracts to include and how to generate SDKs
+
+# Global artifact source configuration
+artifactSources:
+  defaults:
+    foundryOut: ../smart-contracts/out
+    # hardhatOut: ./artifacts  # Optional Hardhat path
+
+  # Artifact caching configuration
+  # Copy artifacts to local 'artifacts/' folder for faster builds
+  cache:
+    mode: copy # Enable artifact copying (none | copy | link)
+    dir: artifacts # Cache directory (default: 'artifacts')
+    copyOnBuild:
+      false # Default: false - only copy when artifacts change
+      # Set to true to copy on every build (useful for CI/CD)
+
+# Contracts with inline interface relationships and optional artifact overrides
+contracts:
+  MyContract:
+    implements: [IMyContract]
+    tags: [core, main]
+    # Uses default artifactSources.defaults.foundryOut
+
+  HelperContract:
+    implements: [IHelper]
+    tags: [utility, core]
+
+  TokenContract:
+    implements: [IERC20]
+    tags: [token]
+
+  NFTContract:
+    implements: [IERC721]
+    tags: [nft]
+
+  # Example: Contract from a different repository
+  # ExternalContract:
+  #   implements: [IExternal]
+  #   artifact:
+  #     project: foundry
+  #     outDir: ../../external-repo/out
+
+# Interface contracts (auto-detected by I-prefix naming)
+interfaces:
+  - IMyContract
+  - IHelper
+  - IERC20
+  - IERC721
+
+# EIP-712 Signature generation configuration
+#
+# abikit automatically extracts struct types from your contract ABI files
+# and generates TypeScript and Python signature utilities for EIP-712 signing
+#
+# Benefits:
+# - Automatic type extraction from ABI files
+# - No manual struct type definitions needed
+# - Supports nested structs and complex hierarchies
+# - Cross-platform TypeScript and Python support
+# - Type-safe signature generation
+#
+signatures:
+  enabled: true
+  items:
+    # Example: Bid authorization struct for auction management
+    # abikit will automatically extract the BidAuthorization struct fields from BidManager ABI
+    - contract: BidManager
+      primaryType: BidAuthorization
+      domain:
+        name: "My DApp" # Your dApp name (use meaningful names)
+        version: "1" # Increment on breaking changes
+
+    # Example: Bid struct for auction system
+    # Supports complex struct hierarchies and nested types
+    - contract: HelperContract
+      primaryType: Bid
+      domain:
+        name: "Auction System"
+        version: "1"
+
+    # Example: Complex nested struct
+    # abikit handles nested structs automatically
+    - contract: TokenContract
+      primaryType: ComplexTransaction
+      domain:
+        name: "Token Manager"
+        version: "1"
+
+# Generation configuration
+#
+# Artifact Caching Benefits:
+# - Faster builds: Cached artifacts load faster than scanning source directories
+# - Offline development: Work without access to original artifact sources
+# - Consistent builds: Ensures same artifacts across team members
+# - CI/CD optimization: Pre-cache artifacts for faster CI builds
+#
+# Cache Commands:
+# - abikit cache stats    # Show cache statistics
+# - abikit cache clear    # Clear artifact cache
+#
+generation:
+  # Target SDK configurations
+  targets:
+    # TypeScript SDK with viem
+    - language: ts
+      outDir: ./sdk/typescript
+      options:
+        transport: viem
+        emitHooks: false
+        bigintStyle: native
+        emitStructsOnly: true
+        packageName: "@yourproject/contracts"
+        packageVersion: "1.0.0"
+        emitFactories: true
+        emitCreate2Helpers: true
+        decodeCustomErrors: true
+
+    # Python SDK with web3.py
+    - language: python
+      outDir: ./sdk/python
+      options:
+        emitAsync: true
+        pydanticVersion: 2
+        strictTypes: true
+        eventStreaming:
+          websocket: true
+          defaultBatchSize: 100
+        packageName: myproject_contracts
+        packageVersion: "1.0.0"
+        emitFactories: true
+        emitCreate2Helpers: true
+        format: black
+        lint: ruff
+
+  # Functions to ignore globally
+  ignoreFunctions:
+    global:
+      - authority
+      - changeAuthority
+    # Per-contract function ignores
+    contracts:
+      MyContract:
+        - internalHelper
+
+  # Type generation configuration
+  types:
+    structsOnly: true
+
+# Network configurations (optional)
+networks:
+  baseSepolia:
+    chainId: 84532
+    name: "Base Sepolia"
+    rpc: "https://sepolia.base.org"
+    explorer: "https://sepolia.basescan.org"
+    contracts:
+      MyContract: "0x..."
+      HelperContract: "0x..."
+
+  base:
+    chainId: 8453
+    name: "Base Mainnet"
+    rpc: "https://mainnet.base.org"
+    explorer: "https://basescan.org"
+    contracts:
+      MyContract: "0x..."
+      HelperContract: "0x..."

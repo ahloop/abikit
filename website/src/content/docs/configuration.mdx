@@ -1,0 +1,459 @@
+---
+title: Configuration
+description: Complete guide to configuring abikit with contracts.yaml including targets, artifact sources, and generation options
+prev:
+  title: Update Script
+  slug: update-script
+next:
+  title: Artifact Caching
+  slug: artifact-caching
+---
+
+# Configuration
+
+abikit uses a `contracts.yaml` file to configure SDK generation. This guide covers all available options.
+
+## Version 0.2.3 Improvements
+
+The latest version of abikit includes significant improvements:
+- **Artifact Caching**: Copy artifacts to local `artifacts/` folder for faster builds and offline development
+- **Cache Management**: Built-in cache commands for managing artifact cache
+- **Modular Generators**: TypeScript and Python generators are now split into focused, single-responsibility modules
+- **Enhanced SDKs**: Generated SDKs include complete contract implementations with event watchers, error decoders, and utility helpers
+- **Better Configuration**: Support for contract artifact overrides and improved factory configuration handling
+- **Improved Type System**: Enhanced handling of complex nested types, structs, and enums
+
+## Basic Structure
+
+```yaml
+# Simple list format
+contracts:
+  - MyContract
+  - AnotherContract
+  - HelperContract
+
+interfaces:
+  - IMyContract
+
+generation:
+  targets:
+    - language: ts
+      outDir: ./sdk/typescript
+      options:
+        transport: viem
+        packageName: my-contracts
+    
+    - language: python
+      outDir: ./sdk/python
+      options:
+        packageName: my_contracts
+
+  artifactSources:
+    defaults:
+      foundryOut: ./out
+```
+
+## Contract Definitions
+
+### Simple List Format
+
+The simplest way to define contracts is as an array:
+
+```yaml
+contracts:
+  - MyContract
+  - HelperContract
+  - TokenContract
+  - NFTContract
+```
+
+### Object Format with Metadata
+
+For additional organization, use the object format with optional tags:
+
+```yaml
+contracts:
+  MyContract:
+    tags: [core, main]
+  HelperContract:
+    tags: [core, utility]
+  TokenContract:
+    tags: [token, erc20]
+  NFTContract:
+    tags: [nft, erc721]
+```
+
+Tags are purely organizational and don't affect generation. Use them to categorize contracts for your own reference.
+
+### Generation Configuration
+
+The `generation` section is required and contains all generation settings.
+
+## Generation Targets
+
+Define one or more language targets:
+
+### TypeScript Target
+
+```yaml
+generation:
+  targets:
+    - language: ts
+      outDir: ./sdk/typescript
+      options:
+        transport: viem              # or 'ethers'
+        emitHooks: false             # Generate wagmi hooks
+        bigintStyle: native          # or 'bn.js'
+        emitStructsOnly: true        # Only emit struct types
+        packageName: "@yourproject/contracts"
+        packageVersion: "1.0.0"
+        emitFactories: true          # Generate factory helpers
+        emitCreate2Helpers: true     # Generate CREATE2 helpers
+        decodeCustomErrors: true     # Generate error decoders
+```
+
+**TypeScript Options:**
+- `transport` - Transport library (`'viem'` or `'ethers'`, default: `'viem'`)
+- `emitHooks` - Generate wagmi React hooks (default: `false`)
+- `bigintStyle` - BigInt handling (`'native'` or `'bn.js'`, default: `'native'`)
+- `emitStructsOnly` - Only generate struct types (default: `true`)
+- `packageName` - NPM package name
+- `packageVersion` - Package version
+- `emitFactories` - Generate deployment factory helpers
+- `emitCreate2Helpers` - Generate CREATE2 address calculators
+- `decodeCustomErrors` - Generate custom error decoders
+
+### Python Target
+
+```yaml
+generation:
+  targets:
+    - language: python
+      outDir: ./sdk/python
+      options:
+        emitAsync: true              # Generate async versions
+        pydanticVersion: 2           # Pydantic version
+        strictTypes: true            # Strict type coercion
+        eventStreaming:
+          websocket: true
+          defaultBatchSize: 100
+        packageName: yourproject_contracts
+        packageVersion: "1.0.0"
+        emitFactories: true
+        emitCreate2Helpers: true
+        format: black                # Auto-format with Black
+        lint: ruff                   # Auto-lint with Ruff
+```
+
+**Python Options:**
+- `emitAsync` - Generate async contract classes (default: `false`)
+- `pydanticVersion` - Pydantic version (only `2` supported)
+- `strictTypes` - Enable strict type coercion (default: `true`)
+- `eventStreaming` - Event streaming configuration
+  - `websocket` - Enable WebSocket subscriptions
+  - `defaultBatchSize` - Default batch size for queries
+- `packageName` - Python package name (use snake_case)
+- `packageVersion` - Package version
+- `emitFactories` - Generate deployment helpers
+- `emitCreate2Helpers` - Generate CREATE2 helpers
+- `format` - Auto-format with Black (default: `'black'`)
+- `lint` - Auto-lint with Ruff (default: `'ruff'`)
+
+## Artifact Sources
+
+Configure where abikit finds contract artifacts. The new `artifactSources` configuration provides more flexibility than the legacy `artifactPaths`:
+
+### Global Defaults
+
+```yaml
+artifactSources:
+  defaults:
+    foundryOut: ./out
+    hardhatOut: ./artifacts  # Optional
+```
+
+### Per-Contract Overrides
+
+You can override artifact sources for specific contracts:
+
+```yaml
+artifactSources:
+  defaults:
+    foundryOut: ./out
+
+contracts:
+  # Uses default foundryOut
+  MainContract:
+    implements: [IMainContract]
+  
+  # Override for external repository
+  ExternalContract:
+    implements: [IExternal]
+    artifact:
+      project: foundry
+      outDir: ../../external-repo/out
+  
+  # Override with custom file path
+  CustomContract:
+    artifact:
+      project: hardhat
+      outDir: ../hardhat-project/artifacts
+      file: contracts/Custom.sol/CustomContract.json
+```
+
+### Legacy Support
+
+For backward compatibility, you can still use `artifactPaths`:
+
+```yaml
+generation:
+  artifactPaths:
+    foundryOut: ./out
+    hardhatOut: ./artifacts
+```
+
+**Note:** `artifactSources` is preferred over `artifactPaths` for new configurations.
+
+### Artifact Resolution
+
+abikit automatically resolves contract artifacts using the following process:
+
+1. **Per-contract override**: If a contract has an `artifact` override, use that
+2. **Global defaults**: Use `artifactSources.defaults` paths
+3. **Convention-based**: Apply Foundry/Hardhat naming conventions
+4. **Fallback**: Try legacy `artifactPaths` if available
+
+Use `abikit artifacts list` to see where each contract's artifact is resolved from.
+
+### Artifact Caching
+
+Enable artifact caching to copy artifacts to a local directory for faster builds and offline development:
+
+```yaml
+artifactSources:
+  defaults:
+    foundryOut: ./out
+  
+  cache:
+    mode: copy          # Enable artifact copying (none | copy | link)
+    dir: artifacts      # Cache directory (default: 'artifacts')
+    copyOnBuild: false  # Default: false - only copy when artifacts change
+                        # Set to true to copy on every build
+```
+
+**Cache Options:**
+- `mode` - Caching mode (`'none'`, `'copy'`, or `'link'`, default: `'none'`)
+- `dir` - Directory where artifacts will be cached (default: `'artifacts'`)
+- `copyOnBuild` - Whether to copy artifacts on every build (default: `false`)
+
+**Benefits:**
+- **Faster builds**: Cached artifacts load faster than scanning source directories
+- **Offline development**: Work without access to original artifact sources
+- **Consistent builds**: Ensures same artifacts across team members
+- **CI/CD optimization**: Pre-cache artifacts for faster CI builds
+
+**Cache Commands:**
+```bash
+# Show cache statistics
+abikit cache stats
+
+# Clear artifact cache
+abikit cache clear
+```
+
+## Interface Relationships
+
+Define which interfaces a contract implements directly in the contract definition:
+
+```yaml
+contracts:
+  MyContract:
+    implements: [IMyContract, IAccessControl]
+  
+  TokenContract:
+    implements: [IERC20]
+  
+  SimpleContract: {}  # No interfaces
+```
+
+This:
+- Prevents duplicate type generation
+- Establishes proper inheritance in generated code
+- Co-locates contract metadata with the contract
+- Makes relationships immediately visible
+
+## Ignore Functions
+
+Skip certain functions globally or per-contract:
+
+```yaml
+generation:
+  ignoreFunctions:
+    global:
+      - authority
+      - changeAuthority
+    contracts:
+      MyContract:
+        - ETH
+        - internalFunction
+```
+
+This is useful for excluding internal functions, inherited authority functions, or constants that don't need SDK wrappers.
+
+## Type Generation
+
+Configure type generation behavior:
+
+```yaml
+generation:
+  types:
+    structsOnly: true
+```
+
+When `structsOnly` is `true`, only custom structs and enums are generated as types. Basic Solidity types are mapped to language primitives.
+
+## Network Configuration
+
+Optionally include network configurations and contract addresses:
+
+```yaml
+networks:
+  baseSepolia:
+    chainId: 84532
+    name: "Base Sepolia"
+    rpc: "https://sepolia.base.org"
+    explorer: "https://sepolia.basescan.org"
+    contracts:
+      MyContract: "0x123..."
+      AnotherContract: "0x456..."
+  
+  base:
+    chainId: 8453
+    name: "Base Mainnet"
+    rpc: "https://mainnet.base.org"
+    explorer: "https://basescan.org"
+    contracts:
+      MyContract: "0xabc..."
+      AnotherContract: "0xdef..."
+```
+
+Generated SDKs will include network configuration and address resolution helpers.
+
+## Complete Example
+
+```yaml
+# Contracts with inline metadata
+contracts:
+  MyContract:
+    implements: [IMyContract]
+  
+  HelperContract:
+    implements: [IHelper]
+  
+  TokenContract:
+    implements: [IERC20]
+  
+  NFTContract:
+    implements: [IERC721]
+
+# Interfaces
+interfaces:
+  - IMyContract
+  - IHelper
+  - IERC20
+  - IERC721
+
+# Generation configuration
+generation:
+  # Target SDKs
+  targets:
+    # TypeScript SDK with viem
+    - language: ts
+      outDir: ./sdk/typescript
+      options:
+        transport: viem
+        emitHooks: false
+        bigintStyle: native
+        emitStructsOnly: true
+        packageName: "@yourproject/contracts"
+        packageVersion: "1.0.0"
+        emitFactories: true
+        emitCreate2Helpers: true
+        decodeCustomErrors: true
+
+    # Python SDK with web3.py
+    - language: python
+      outDir: ./sdk/python
+      options:
+        emitAsync: true
+        pydanticVersion: 2
+        strictTypes: true
+        eventStreaming:
+          websocket: true
+          defaultBatchSize: 100
+        packageName: yourproject_contracts
+        packageVersion: "1.0.0"
+        emitFactories: true
+        emitCreate2Helpers: true
+        format: black
+        lint: ruff
+
+  # Functions to ignore
+  ignoreFunctions:
+    global:
+      - authority
+      - changeAuthority
+    contracts:
+      MyContract:
+        - internalHelper
+
+  # Type generation
+  types:
+    structsOnly: true
+
+  # Artifact sources (preferred)
+  artifactSources:
+    defaults:
+      foundryOut: ./out
+    
+    # Artifact caching for faster builds
+    cache:
+      mode: copy
+      dir: artifacts
+      copyOnBuild: false
+
+# Network configurations
+networks:
+  baseSepolia:
+    chainId: 84532
+    name: "Base Sepolia"
+    rpc: "https://sepolia.base.org"
+    explorer: "https://sepolia.basescan.org"
+    contracts:
+      MyContract: "0x..."
+      HelperContract: "0x..."
+  
+  base:
+    chainId: 8453
+    name: "Base Mainnet"
+    rpc: "https://mainnet.base.org"
+    explorer: "https://basescan.org"
+    contracts:
+      MyContract: "0x..."
+      HelperContract: "0x..."
+```
+
+## Validation
+
+Always validate your configuration before building:
+
+```bash
+abikit validate
+```
+
+This checks your configuration against the JSON Schema and reports any errors.
+
+## Next Steps
+
+Now that you understand the configuration, check out the [CLI Reference](/cli-reference) to learn how to use abikit commands effectively.
+
