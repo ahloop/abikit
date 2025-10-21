@@ -3,14 +3,14 @@ import Layout from '../components/Layout';
 import Link from 'next/link';
 
 export default function Home() {
-    const [version, setVersion] = useState('0.1.0');
+    const [version, setVersion] = useState('0.2.3');
 
     useEffect(() => {
         // Fetch latest version from npm
         fetch('https://registry.npmjs.org/abikit/latest')
             .then(res => res.json())
-            .then(data => setVersion(data.version || '0.1.0'))
-            .catch(() => setVersion('0.1.0'));
+            .then(data => setVersion(data.version || '0.2.3'))
+            .catch(() => setVersion('0.2.3'));
     }, []);
 
     return (
@@ -58,6 +58,10 @@ export default function Home() {
                         <h3 className="text-xl font-bold text-gray-900 mb-4">🚀 cli first</h3>
                         <p className="text-gray-700">easy-to-use command-line interface with foundryup-style installation.</p>
                     </div>
+                    <div className="bg-gray-50 p-8 rounded-2xl hover:transform hover:-translate-y-2 transition-all duration-300">
+                        <h3 className="text-xl font-bold text-gray-900 mb-4">⚡ artifact caching</h3>
+                        <p className="text-gray-700">copy artifacts to local directory for faster builds and offline development.</p>
+                    </div>
                 </div>
             </section>
 
@@ -99,6 +103,10 @@ abikit build`}
                         <Link href="/configuration" className="block p-6 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors">
                             <h3 className="text-xl font-bold text-gray-900 mb-2">configuration</h3>
                             <p className="text-gray-700">configure your project for optimal sdk generation</p>
+                        </Link>
+                        <Link href="/artifact-caching" className="block p-6 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors">
+                            <h3 className="text-xl font-bold text-gray-900 mb-2">artifact caching</h3>
+                            <p className="text-gray-700">faster builds with local artifact caching</p>
                         </Link>
                         <a href="https://github.com/ahloop/abikit" target="_blank" rel="noopener noreferrer" className="block p-6 bg-white border border-gray-200 rounded-xl hover:bg-gray-50 transition-colors">
                             <h3 className="text-xl font-bold text-gray-900 mb-2">github repository</h3>

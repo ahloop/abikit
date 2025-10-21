@@ -6,6 +6,7 @@
 import * as fs from 'fs';
 import * as path from 'path';
 import type { ContractsConfig, ContractDefinition } from '../types/config';
+import { ArtifactCacheManager } from './cache-manager';
 
 export interface ContractArtifact {
     contractName: string;
@@ -20,11 +21,35 @@ export class ArtifactLoader {
     private hardhatOutDir?: string;
     private config?: ContractsConfig;
     private resolvedPaths: Map<string, string> = new Map();
+    private cacheManager?: ArtifactCacheManager;
 
     constructor(foundryOutDir: string, hardhatOutDir?: string, config?: ContractsConfig) {
         this.foundryOutDir = foundryOutDir;
         this.hardhatOutDir = hardhatOutDir;
         this.config = config;
+
+        // Initialize cache manager if caching is enabled
+        if (config?.artifactSources?.cache?.mode === 'copy') {
+            const cacheDir = config.artifactSources.cache.dir || 'artifacts';
+            this.cacheManager = new ArtifactCacheManager(config, cacheDir);
+        }
+    }
+
+    /**
+     * Copy artifacts to cache directory if caching is enabled
+     */
+    async copyArtifactsToCache(contractNames: string[]): Promise<void> {
+        if (!this.cacheManager) return;
+
+        const sourceDir = this.foundryOutDir;
+        await this.cacheManager.copyArtifacts(sourceDir, contractNames);
+    }
+
+    /**
+     * Get cache manager instance
+     */
+    getCacheManager(): ArtifactCacheManager | undefined {
+        return this.cacheManager;
     }
 
     /**
@@ -86,6 +111,26 @@ export class ArtifactLoader {
      * Load contract artifact by name
      */
     loadArtifact(contractName: string): ContractArtifact {
+        // Check cache first if available
+        if (this.cacheManager?.isArtifactCached(contractName)) {
+            const cachedPath = this.cacheManager.getCachedArtifactPath(contractName);
+            if (cachedPath) {
+                this.resolvedPaths.set(contractName, cachedPath);
+                try {
+                    const artifact = JSON.parse(fs.readFileSync(cachedPath, 'utf8'));
+                    return {
+                        contractName,
+                        abi: artifact.abi || [],
+                        bytecode: artifact.bytecode?.object || artifact.bytecode,
+                        deployedBytecode: artifact.deployedBytecode?.object || artifact.deployedBytecode,
+                        metadata: artifact.metadata,
+                    };
+                } catch (error) {
+                    console.warn(`Failed to load cached artifact from ${cachedPath}:`, error);
+                }
+            }
+        }
+
         // Resolve path using config-based resolution
         const resolvedPath = this.resolveArtifactPath(contractName);
 
@@ -237,11 +282,11 @@ export class ArtifactLoader {
 
         // List from Foundry
         if (fs.existsSync(this.foundryOutDir)) {
-            const entries = fs.readdirSync(this.foundryOutDir);
+            const entries = fs.readdirSync(this.foundryOutDir, { withFileTypes: true });
             for (const entry of entries) {
-                if (entry.endsWith('.sol')) {
-                    const contractName = entry.replace('.sol', '');
-                    const jsonPath = path.join(this.foundryOutDir, entry, `${contractName}.json`);
+                if (entry.isDirectory() && entry.name.endsWith('.sol')) {
+                    const contractName = entry.name.replace('.sol', '');
+                    const jsonPath = path.join(this.foundryOutDir, entry.name, `${contractName}.json`);
                     if (fs.existsSync(jsonPath)) {
                         contracts.push(contractName);
                     }

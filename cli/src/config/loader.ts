@@ -68,6 +68,11 @@ export class ConfigLoader {
             config.generation.artifactPaths = (config.generation as any).artifactSources;
         }
 
+        // Also move artifactSources to root level for CLI compatibility
+        if ((config.generation as any).artifactSources && !config.artifactSources) {
+            config.artifactSources = (config.generation as any).artifactSources;
+        }
+
         // Set defaults for artifact paths
         if (!config.generation.artifactPaths) {
             config.generation.artifactPaths = {};
@@ -98,6 +103,17 @@ export class ConfigLoader {
         // Set defaults for interface relationships
         if (!config.generation.interfaceRelationships) {
             config.generation.interfaceRelationships = {};
+        }
+
+        // Set defaults for signatures
+        if (!config.signatures) {
+            config.signatures = { enabled: false, items: [] };
+        }
+        if (config.signatures.enabled === undefined) {
+            config.signatures.enabled = false;
+        }
+        if (!config.signatures.items) {
+            config.signatures.items = [];
         }
     }
 

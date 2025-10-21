@@ -5,17 +5,19 @@ prev:
   title: Update Script
   slug: update-script
 next:
-  title: CLI Reference
-  slug: cli-reference
+  title: Artifact Caching
+  slug: artifact-caching
 ---
 
 # Configuration
 
 abikit uses a `contracts.yaml` file to configure SDK generation. This guide covers all available options.
 
-## Version 0.2.2 Improvements
+## Version 0.2.3 Improvements
 
 The latest version of abikit includes significant improvements:
+- **Artifact Caching**: Copy artifacts to local `artifacts/` folder for faster builds and offline development
+- **Cache Management**: Built-in cache commands for managing artifact cache
 - **Modular Generators**: TypeScript and Python generators are now split into focused, single-responsibility modules
 - **Enhanced SDKs**: Generated SDKs include complete contract implementations with event watchers, error decoders, and utility helpers
 - **Better Configuration**: Support for contract artifact overrides and improved factory configuration handling
@@ -223,6 +225,42 @@ abikit automatically resolves contract artifacts using the following process:
 
 Use `abikit artifacts list` to see where each contract's artifact is resolved from.
 
+### Artifact Caching
+
+Enable artifact caching to copy artifacts to a local directory for faster builds and offline development:
+
+```yaml
+artifactSources:
+  defaults:
+    foundryOut: ./out
+  
+  cache:
+    mode: copy          # Enable artifact copying (none | copy | link)
+    dir: artifacts      # Cache directory (default: 'artifacts')
+    copyOnBuild: false  # Default: false - only copy when artifacts change
+                        # Set to true to copy on every build
+```
+
+**Cache Options:**
+- `mode` - Caching mode (`'none'`, `'copy'`, or `'link'`, default: `'none'`)
+- `dir` - Directory where artifacts will be cached (default: `'artifacts'`)
+- `copyOnBuild` - Whether to copy artifacts on every build (default: `false`)
+
+**Benefits:**
+- **Faster builds**: Cached artifacts load faster than scanning source directories
+- **Offline development**: Work without access to original artifact sources
+- **Consistent builds**: Ensures same artifacts across team members
+- **CI/CD optimization**: Pre-cache artifacts for faster CI builds
+
+**Cache Commands:**
+```bash
+# Show cache statistics
+abikit cache stats
+
+# Clear artifact cache
+abikit cache clear
+```
+
 ## Interface Relationships
 
 Define which interfaces a contract implements directly in the contract definition:
@@ -377,6 +415,12 @@ generation:
   artifactSources:
     defaults:
       foundryOut: ./out
+    
+    # Artifact caching for faster builds
+    cache:
+      mode: copy
+      dir: artifacts
+      copyOnBuild: false
 
 # Network configurations
 networks:

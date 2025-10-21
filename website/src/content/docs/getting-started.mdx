@@ -121,10 +121,11 @@ abikit generates:
 - **Factory helpers** for contract deployment
 - **CREATE2 helpers** for deterministic addresses
 
-## Generator Architecture (v0.2.2+)
+## Generator Architecture (v0.2.3+)
 
 abikit now uses modular generators for improved maintainability and extensibility:
 
+- **Artifact Caching**: Copy artifacts to local `artifacts/` folder for faster builds and offline development
 - **TypeScript Generator**: Splits generation into 10+ focused modules handling config, contracts, interfaces, types, signatures, errors, events, and utilities
 - **Python Generator**: Applies the same modular structure with Python-specific implementations
 - **Factory Pattern**: Easy to extend with new language targets or custom generators

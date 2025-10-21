@@ -18,7 +18,7 @@ const program = new Command();
 program
     .name('abikit')
     .description('Multi-language SDK generator for smart contracts')
-    .version('0.1.0');
+    .version('0.1.2');
 
 /**
  * Init command - scaffold contracts.yaml from artifacts
@@ -105,6 +105,83 @@ program
     });
 
 /**
+ * Cache command - manage artifact cache
+ */
+const cacheCommand = program
+    .command('cache')
+    .description('Manage artifact cache');
+
+cacheCommand
+    .command('clear')
+    .description('Clear artifact cache')
+    .argument('[config]', 'Path to contracts.yaml', './contracts.yaml')
+    .action(async (configPath: string) => {
+        try {
+            const resolvedConfigPath = path.resolve(configPath);
+            console.log(chalk.blue('🗑️  Clearing artifact cache...'));
+
+            const loader = new ConfigLoader();
+            const config = loader.loadConfig(resolvedConfigPath);
+
+            if (config.artifactSources?.cache?.mode === 'copy') {
+                const foundryOut = config.artifactSources?.defaults?.foundryOut || './out';
+                const artifactLoader = new ArtifactLoader(foundryOut, config.artifactSources?.defaults?.hardhatOut, config);
+                const cacheManager = artifactLoader.getCacheManager();
+
+                if (cacheManager) {
+                    cacheManager.clearCache();
+                    console.log(chalk.green('✅ Artifact cache cleared'));
+                } else {
+                    console.log(chalk.yellow('⚠️  No cache manager found'));
+                }
+            } else {
+                console.log(chalk.yellow('⚠️  Artifact caching is not enabled'));
+            }
+
+        } catch (error) {
+            console.error(chalk.red('❌ Failed to clear cache:'), error);
+            process.exit(1);
+        }
+    });
+
+cacheCommand
+    .command('stats')
+    .description('Show cache statistics')
+    .argument('[config]', 'Path to contracts.yaml', './contracts.yaml')
+    .action(async (configPath: string) => {
+        try {
+            const resolvedConfigPath = path.resolve(configPath);
+            console.log(chalk.blue('📊 Cache statistics...'));
+
+            const loader = new ConfigLoader();
+            const config = loader.loadConfig(resolvedConfigPath);
+
+            if (config.artifactSources?.cache?.mode === 'copy') {
+                const foundryOut = config.artifactSources?.defaults?.foundryOut || './out';
+                const artifactLoader = new ArtifactLoader(foundryOut, config.artifactSources?.defaults?.hardhatOut, config);
+                const cacheManager = artifactLoader.getCacheManager();
+
+                if (cacheManager) {
+                    const stats = cacheManager.getCacheStats();
+                    console.log(chalk.green(`📦 Cache Directory: ${stats.cacheDir}`));
+                    console.log(chalk.green(`📄 Cached Artifacts: ${stats.cachedCount}`));
+                    if (stats.lastCacheTime) {
+                        console.log(chalk.green(`⏰ Last Cache Time: ${new Date(stats.lastCacheTime).toLocaleString()}`));
+                    }
+                } else {
+                    console.log(chalk.yellow('⚠️  No cache manager found'));
+                }
+            } else {
+                console.log(chalk.yellow('⚠️  Artifact caching is not enabled'));
+            }
+
+        } catch (error) {
+            console.error(chalk.red('❌ Failed to get cache stats:'), error);
+            process.exit(1);
+        }
+    });
+
+/**
  * Build command - generate SDKs
  */
 program
@@ -167,12 +244,33 @@ program
 
             console.log(chalk.green(`✅ Built model with ${graph.contracts.size} contracts`));
 
+            // Handle artifact caching if enabled
+            if (config.artifactSources?.cache?.mode === 'copy') {
+                const artifactLoader = new ArtifactLoader(foundryOut, config.artifactSources?.defaults?.hardhatOut, config);
+                const contractNames = Array.from(graph.contracts.keys());
+
+                console.log(chalk.blue('📦 Caching artifacts...'));
+                await artifactLoader.copyArtifactsToCache(contractNames);
+
+                const cacheManager = artifactLoader.getCacheManager();
+                if (cacheManager) {
+                    const stats = cacheManager.getCacheStats();
+                    console.log(chalk.green(`✅ Cached ${stats.cachedCount} artifacts to ${stats.cacheDir}`));
+                }
+            }
+
             // Invoke generators for each target
             for (const target of config.generation.targets) {
                 console.log(chalk.blue(`📝 Generating ${target.language} SDK to ${target.outDir}...`));
 
                 const generator = GeneratorFactory.createGenerator(target);
-                await generator.generate(graph, target);
+                const context = {
+                    networks: config.networks,
+                    signatures: config.signatures,
+                    artifactSources: config.artifactSources,
+                    fullConfig: config,
+                };
+                await generator.generate(graph, target, context);
             }
 
             // Record successful build

@@ -1,0 +1,143 @@
+---
+title: Artifact Caching
+description: Complete guide to abikit's artifact caching feature for faster builds and offline development
+prev:
+  title: Configuration
+  slug: configuration
+next:
+  title: CLI Reference
+  slug: cli-reference
+---
+
+# Artifact Caching
+
+abikit's artifact caching feature allows you to copy your contract artifacts (e.g., `.json` files from Foundry's `out` directory or Hardhat's `artifacts` directory) to a local, managed cache directory. This can significantly speed up subsequent SDK generation builds, enable offline development, and ensure consistent builds across different environments.
+
+## How it Works
+
+When artifact caching is enabled (`mode: copy`), abikit will:
+1. **Copy Artifacts**: During the `abikit build` process, it will copy the `.json` artifact files for all contracts defined in your `contracts.yaml` from their source directories (e.g., `foundryOut`) to a specified local cache directory (e.g., `artifacts/`).
+2. **Hash Tracking**: It tracks a hash of the source artifact directory. If `copyOnBuild` is `false` (the default), artifacts are only re-copied if the source directory's hash changes, preventing unnecessary file operations.
+3. **Prioritized Resolution**: When `abikit` needs to load an artifact, it first checks the cache. If the artifact is found in the cache, it's loaded from there, bypassing the potentially slower process of resolving from source directories.
+
+## Configuration
+
+To enable artifact caching, add an `artifactSources.cache` section to your `contracts.yaml`:
+
+```yaml
+artifactSources:
+  defaults:
+    foundryOut: ../smart-contracts/out # Path to your Foundry 'out' directory
+  
+  cache:
+    mode: copy          # Required: Set to 'copy' to enable artifact caching
+    dir: artifacts      # Optional: Directory where artifacts will be cached (default: 'artifacts' relative to config)
+    copyOnBuild: false  # Optional: Set to true to force copying on every build, even if source is unchanged.
+                        # Default is false, which optimizes by only copying when source artifacts change.
+
+contracts:
+  MyContract: {}
+  AnotherContract: {}
+
+generation:
+  targets:
+    - language: typescript
+      framework: viem
+      outDir: ./sdk/ts
+    - language: python
+      framework: web3py
+      outDir: ./sdk/py
+```
+
+### `mode: copy`
+This is the primary setting to enable artifact caching. When set to `copy`, abikit will manage a local copy of your artifacts.
+
+### `dir: <path>`
+Specifies the directory where the artifacts will be copied. This path is relative to your `contracts.yaml` file. If not specified, it defaults to `artifacts/`.
+
+### `copyOnBuild: <boolean>`
+- `false` (default): Artifacts are only copied to the cache if the source artifacts have changed since the last build. This is the recommended setting for most workflows as it optimizes build times.
+- `true`: Artifacts are copied to the cache on every `abikit build` command, regardless of whether the source has changed. Use this if you need to ensure the cache is always refreshed, even for minor, untracked changes.
+
+## CLI Commands for Cache Management
+
+abikit provides dedicated commands to manage your artifact cache:
+
+### `abikit cache stats [config]`
+Displays statistics about the current artifact cache, including:
+- The cache directory path.
+- The number of cached artifacts.
+- The timestamp of the last cache operation.
+
+```bash
+abikit cache stats
+# Example output:
+# 📊 Cache statistics...
+# ✅ Cached 2 artifacts to /path/to/your/project/artifacts
+# ⏰ Last Cache Time: 10/26/2025, 10:30:00 AM
+```
+
+### `abikit cache clear [config]`
+Removes all cached artifacts and the cache directory itself. This is useful for cleaning up your environment or forcing a complete re-copy of artifacts.
+
+```bash
+abikit cache clear
+# Example output:
+# 🗑️  Clearing artifact cache...
+# ✅ Artifact cache cleared
+```
+
+## Benefits of Artifact Caching
+
+-   **Faster Builds**: By loading artifacts from a local, optimized cache, abikit can bypass potentially slow file system scans of large `out` or `artifacts` directories, leading to quicker SDK generation.
+-   **Offline Development**: Once artifacts are cached, you can continue generating SDKs even if your original smart contract project's build output is unavailable or if you're working offline.
+-   **Consistent Builds**: Ensures that all team members or CI/CD pipelines use the exact same set of artifacts, reducing "it works on my machine" issues.
+-   **CI/CD Optimization**: In continuous integration/continuous deployment pipelines, caching artifacts can significantly reduce build times by allowing subsequent builds to reuse previously copied artifacts.
+
+## Integration with `abikit build`
+
+When `artifactSources.cache.mode: copy` is enabled, the `abikit build` command automatically handles the caching process:
+1. It checks if artifacts need to be copied (based on `copyOnBuild` and source hash).
+2. If copying is needed, it performs the copy operation.
+3. It then proceeds with the SDK generation using either the cached or newly copied artifacts.
+
+## Best Practices
+
+### Development Workflow
+1. **Enable caching** in your `contracts.yaml` for faster iteration
+2. **Use `copyOnBuild: false`** for optimal performance (default)
+3. **Clear cache** when switching between different contract versions or branches
+4. **Commit cache directory** to version control for team consistency (optional)
+
+### CI/CD Integration
+1. **Pre-cache artifacts** in your CI pipeline before running `abikit build`
+2. **Use `copyOnBuild: true`** in CI to ensure fresh artifacts on every build
+3. **Cache the cache directory** in your CI system for faster subsequent builds
+
+### Team Collaboration
+1. **Share cache directory** via version control for consistent builds across team members
+2. **Document cache settings** in your project README
+3. **Use consistent paths** for cache directories across different environments
+
+## Troubleshooting
+
+### Cache Not Working
+- Verify that `artifactSources.cache.mode` is set to `copy`
+- Check that the cache directory path is correct and writable
+- Run `abikit cache stats` to see current cache status
+
+### Stale Artifacts
+- Use `abikit cache clear` to force a fresh copy of artifacts
+- Set `copyOnBuild: true` to always copy artifacts on every build
+- Check that your source artifact directories are up to date
+
+### Performance Issues
+- Ensure `copyOnBuild: false` for optimal performance (default)
+- Use relative paths for cache directories
+- Consider using faster storage for cache directories
+
+## Next Steps
+
+- Learn about [Configuration](/configuration) options
+- Check out the [CLI Reference](/cli-reference) for all commands
+- See [Getting Started](/getting-started) for quick setup

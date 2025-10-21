@@ -166,7 +166,41 @@
                             },
                             "options": {
                                 "type": "object",
-                                "description": "Language-specific generation options"
+                                "description": "Language-specific generation options",
+                                "properties": {
+                                    "sdk": {
+                                        "type": "object",
+                                        "description": "SDK generation configuration",
+                                        "properties": {
+                                            "enabled": {
+                                                "type": "boolean",
+                                                "description": "Enable SDK generation",
+                                                "default": false
+                                            },
+                                            "className": {
+                                                "type": "string",
+                                                "description": "Exported class name",
+                                                "default": "ContractSDK"
+                                            },
+                                            "fileName": {
+                                                "type": "string",
+                                                "description": "Output file name (without extension)",
+                                                "default": "sdk"
+                                            },
+                                            "lazyLoad": {
+                                                "type": "boolean",
+                                                "description": "Enable lazy loading of contracts",
+                                                "default": true
+                                            },
+                                            "skipZeroAddresses": {
+                                                "type": "boolean",
+                                                "description": "Skip contracts with zero addresses",
+                                                "default": true
+                                            }
+                                        },
+                                        "additionalProperties": false
+                                    }
+                                }
                             }
                         }
                     }
@@ -251,7 +285,80 @@
                     "contracts": {
                         "type": "object",
                         "additionalProperties": {
-                            "type": "string"
+                            "oneOf": [
+                                {
+                                    "type": "string",
+                                    "description": "Simple address string"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "name": {
+                                            "type": "string",
+                                            "description": "Contract class name (defaults to key)"
+                                        },
+                                        "address": {
+                                            "type": "string",
+                                            "description": "Contract address"
+                                        }
+                                    },
+                                    "required": [
+                                        "address"
+                                    ],
+                                    "additionalProperties": false
+                                }
+                            ]
+                        }
+                    }
+                }
+            }
+        },
+        "signatures": {
+            "type": "object",
+            "description": "EIP-712 signature generation configuration",
+            "properties": {
+                "enabled": {
+                    "type": "boolean",
+                    "description": "Enable signature generation",
+                    "default": false
+                },
+                "items": {
+                    "type": "array",
+                    "description": "Signature types to generate",
+                    "items": {
+                        "type": "object",
+                        "required": [
+                            "contract",
+                            "primaryType",
+                            "domain"
+                        ],
+                        "properties": {
+                            "contract": {
+                                "type": "string",
+                                "description": "Contract name to extract types from"
+                            },
+                            "primaryType": {
+                                "type": "string",
+                                "description": "Primary EIP-712 type"
+                            },
+                            "domain": {
+                                "type": "object",
+                                "description": "EIP-712 domain configuration",
+                                "properties": {
+                                    "name": {
+                                        "type": "string",
+                                        "description": "Domain name"
+                                    },
+                                    "version": {
+                                        "type": "string",
+                                        "description": "Domain version"
+                                    }
+                                },
+                                "required": [
+                                    "name",
+                                    "version"
+                                ]
+                            }
                         }
                     }
                 }

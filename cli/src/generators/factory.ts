@@ -3,8 +3,8 @@
  */
 
 import { Generator } from './base';
-import { TypeScriptGenerator } from './typescript';
-import { PythonGenerator } from './python';
+import { TypeScriptGenerator } from './typescript/index';
+import { PythonGenerator } from './python/index';
 import { TargetConfig, Language } from '../types/config';
 
 export class GeneratorFactory {

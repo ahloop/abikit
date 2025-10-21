@@ -2,17 +2,19 @@
 title: CLI Reference
 description: Complete command-line interface reference for abikit including all commands, options, and common workflows
 prev:
-  title: Configuration
-  slug: configuration
+  title: Artifact Caching
+  slug: artifact-caching
 ---
 
 # CLI Reference
 
 abikit provides a powerful command-line interface for generating multi-language SDKs from smart contracts.
 
-## Version 0.2.2 Enhancements
+## Version 0.2.3 Enhancements
 
 The latest version includes:
+- **Artifact Caching**: Copy artifacts to local `artifacts/` folder for faster builds and offline development
+- **Cache Management**: New `abikit cache stats` and `abikit cache clear` commands for cache management
 - **Modular Generator Modules**: TypeScript and Python generators split into focused modules for better maintainability
 - **Enhanced SDK Output**: Generated SDKs now include event watchers, error decoders, and helper utilities
 - **Improved Validation**: Better configuration validation and error reporting
@@ -173,6 +175,58 @@ abikit artifacts list ./custom-config.yaml
 ```
 
 The artifacts list command shows where each contract's artifact is resolved from, helping you verify that all contracts can be found and debug artifact resolution issues.
+
+### cache
+
+Manage artifact cache for faster builds.
+
+```bash
+abikit cache [command] [config]
+```
+
+**Subcommands:**
+
+#### cache stats
+
+Show cache statistics including directory, cached artifact count, and last cache time.
+
+```bash
+abikit cache stats [config]
+```
+
+**Arguments:**
+- `config` - Path to contracts.yaml (default: `"./contracts.yaml"`)
+
+**Example:**
+```bash
+# Show cache statistics
+abikit cache stats
+
+# Show stats for specific config
+abikit cache stats ./custom-config.yaml
+```
+
+#### cache clear
+
+Clear the artifact cache directory.
+
+```bash
+abikit cache clear [config]
+```
+
+**Arguments:**
+- `config` - Path to contracts.yaml (default: `"./contracts.yaml"`)
+
+**Example:**
+```bash
+# Clear cache for default config
+abikit cache clear
+
+# Clear cache for specific config
+abikit cache clear ./custom-config.yaml
+```
+
+The cache commands help manage the artifact caching feature, which copies contract artifacts to a local directory for faster builds and offline development.
 
 ## Common Workflows
 

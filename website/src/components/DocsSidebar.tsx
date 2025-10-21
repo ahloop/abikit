@@ -32,6 +32,10 @@ const docsStructure: DocItem[] = [
         slug: 'configuration'
     },
     {
+        title: 'Artifact Caching',
+        slug: 'artifact-caching'
+    },
+    {
         title: 'CLI Reference',
         slug: 'cli-reference'
     }
@@ -90,8 +94,8 @@ export default function DocsSidebar({ currentSlug }: DocsSidebarProps) {
                     <Link
                         href={`/${item.slug}`}
                         className={`block py-1 px-2 rounded text-sm transition-colors ${active
-                                ? 'bg-blue-100 text-blue-900 font-medium'
-                                : 'text-gray-700 hover:text-gray-900 hover:bg-gray-50'
+                            ? 'bg-blue-100 text-blue-900 font-medium'
+                            : 'text-gray-700 hover:text-gray-900 hover:bg-gray-50'
                             }`}
                         style={{ paddingLeft: `${level * 12 + 8}px` }}
                     >

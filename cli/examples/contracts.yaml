@@ -7,10 +7,14 @@ artifactSources:
     foundryOut: ../smart-contracts/out
     # hardhatOut: ./artifacts  # Optional Hardhat path
 
-  # Optional: Cache artifacts locally
-  # cache:
-  #   mode: none  # none | copy | link
-  #   dir: ./.abikit/artifacts-cache
+  # Artifact caching configuration
+  # Copy artifacts to local 'artifacts/' folder for faster builds
+  cache:
+    mode: copy # Enable artifact copying (none | copy | link)
+    dir: artifacts # Cache directory (default: 'artifacts')
+    copyOnBuild:
+      false # Default: false - only copy when artifacts change
+      # Set to true to copy on every build (useful for CI/CD)
 
 # Contracts with inline interface relationships and optional artifact overrides
 contracts:
@@ -46,6 +50,17 @@ interfaces:
   - IERC721
 
 # Generation configuration
+#
+# Artifact Caching Benefits:
+# - Faster builds: Cached artifacts load faster than scanning source directories
+# - Offline development: Work without access to original artifact sources
+# - Consistent builds: Ensures same artifacts across team members
+# - CI/CD optimization: Pre-cache artifacts for faster CI builds
+#
+# Cache Commands:
+# - abikit cache stats    # Show cache statistics
+# - abikit cache clear    # Clear artifact cache
+#
 generation:
   # Target SDK configurations
   targets:

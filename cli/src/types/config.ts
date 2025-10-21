@@ -19,11 +19,20 @@ export interface CommonTargetOptions {
     emitAddressBook?: boolean;
 }
 
+export interface SDKGenerationConfig {
+    enabled?: boolean;
+    className?: string;  // Default: "ContractSDK"
+    fileName?: string;   // Default: "sdk"
+    lazyLoad?: boolean;  // Default: true
+    skipZeroAddresses?: boolean;  // Default: true
+}
+
 export interface TypeScriptTargetOptions extends CommonTargetOptions {
     transport?: 'viem' | 'ethers';
     emitHooks?: boolean;
     bigintStyle?: 'native' | 'bn.js';
     emitStructsOnly?: boolean;
+    sdk?: SDKGenerationConfig;
 }
 
 export interface PythonTargetOptions extends CommonTargetOptions {
@@ -37,6 +46,7 @@ export interface PythonTargetOptions extends CommonTargetOptions {
     runtimeDependency?: string;
     format?: 'black';
     lint?: 'ruff';
+    sdk?: SDKGenerationConfig;
 }
 
 export type TargetOptions = TypeScriptTargetOptions | PythonTargetOptions;
@@ -57,12 +67,17 @@ export interface GenerationConfig {
     };
 }
 
+export interface NetworkContractConfig {
+    name?: string;  // Contract class name, defaults to key
+    address: string;
+}
+
 export interface NetworkConfig {
     chainId: number;
     name: string;
     rpc: string;
     explorer?: string;
-    contracts: Record<string, string>;
+    contracts: Record<string, string | NetworkContractConfig>;
 }
 
 export interface ArtifactDefaults {
@@ -73,6 +88,7 @@ export interface ArtifactDefaults {
 export interface ArtifactCache {
     mode?: 'none' | 'copy' | 'link';
     dir?: string;
+    copyOnBuild?: boolean; // Default: false - copy artifacts to cache dir on each build
 }
 
 export interface ArtifactWatch {
@@ -99,19 +115,45 @@ export interface ContractDefinition {
     artifact?: ContractArtifactOverride;
 }
 
-export interface ContractsConfig {
-    contracts?: string[] | Record<string, ContractDefinition>;
-    interfaces?: string[];
-    generation: GenerationConfig;
-    artifactSources?: ArtifactSources;
-    networks?: Record<string, NetworkConfig>;
-}
-
 export interface CacheData {
     configHash?: string;
     artifactsHash?: string;
     targetsHash?: string;
     lastBuildTime?: number;
     generatedFiles?: Record<string, string>;
+}
+
+export interface Eip712Field {
+    name: string;
+    type: string;
+}
+
+export interface Eip712Type {
+    [typeName: string]: Eip712Field[];
+}
+
+export interface Eip712Domain {
+    name: string;
+    version: string;
+}
+
+export interface SignatureItem {
+    contract: string;
+    primaryType: string;
+    domain: Eip712Domain;
+}
+
+export interface SignaturesConfig {
+    enabled?: boolean;
+    items?: SignatureItem[];
+}
+
+export interface ContractsConfig {
+    contracts?: string[] | Record<string, ContractDefinition>;
+    interfaces?: string[];
+    generation: GenerationConfig;
+    artifactSources?: ArtifactSources;
+    networks?: Record<string, NetworkConfig>;
+    signatures?: SignaturesConfig;
 }
 

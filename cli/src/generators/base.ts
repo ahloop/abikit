@@ -3,13 +3,28 @@
  */
 
 import { ContractGraph } from '../types/model';
-import { TargetConfig } from '../types/config';
+import { TargetConfig, ContractsConfig, NetworkConfig, SignaturesConfig, ArtifactSources } from '../types/config';
+
+/**
+ * Context object passed to generators containing shared configuration
+ * and resources that generators may need beyond their target-specific config
+ */
+export interface GeneratorContext {
+    /** Network configurations for chain IDs, RPC URLs, etc. */
+    networks?: Record<string, NetworkConfig>;
+    /** EIP-712 signature configurations */
+    signatures?: SignaturesConfig;
+    /** Artifact source configurations */
+    artifactSources?: ArtifactSources;
+    /** Full contracts configuration (for advanced use cases) */
+    fullConfig?: ContractsConfig;
+}
 
 export interface Generator {
     /**
      * Generate SDK for the target language
      */
-    generate(graph: ContractGraph, config: TargetConfig): Promise<void>;
+    generate(graph: ContractGraph, config: TargetConfig, context: GeneratorContext): Promise<void>;
 
     /**
      * Get generator name
@@ -31,7 +46,7 @@ export abstract class BaseGenerator implements Generator {
         this.options = options;
     }
 
-    abstract generate(graph: ContractGraph, config: TargetConfig): Promise<void>;
+    abstract generate(graph: ContractGraph, config: TargetConfig, context: GeneratorContext): Promise<void>;
     abstract getName(): string;
     abstract validateOptions(options: any): void;
 
@@ -83,6 +98,18 @@ export abstract class BaseGenerator implements Generator {
     protected logError(message: string): void {
         const chalk = require('chalk');
         console.error(chalk.red(`  ✗ ${message}`));
+    }
+
+    /**
+     * Create generator context from full config
+     */
+    protected createContext(fullConfig?: ContractsConfig): GeneratorContext {
+        return {
+            networks: fullConfig?.networks,
+            signatures: fullConfig?.signatures,
+            artifactSources: fullConfig?.artifactSources,
+            fullConfig,
+        };
     }
 }
 
