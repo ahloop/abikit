@@ -25,7 +25,7 @@ export class StructExtractor {
         if (targetStruct) {
             structTypes[primaryType] = this.convertStructToTypeFields(targetStruct);
 
-            // Also extract any nested structs
+            // Also extract any nested structs recursively
             this.extractNestedStructs(targetStruct, contract.structs, structTypes);
         }
 
@@ -35,6 +35,11 @@ export class StructExtractor {
             if (extractedFromABI) {
                 Object.assign(structTypes, extractedFromABI);
             }
+        }
+
+        // If still not found, try to find it as a nested type in other structs
+        if (!structTypes[primaryType]) {
+            this.findNestedStruct(contract.structs, primaryType, structTypes);
         }
 
         return Object.keys(structTypes).length > 0 ? structTypes : null;
@@ -185,6 +190,30 @@ export class StructExtractor {
             case 'int': return 'int256';
             case 'byte': return 'bytes1';
             default: return type;
+        }
+    }
+
+    /**
+     * Find a struct that might be nested within other structs
+     */
+    private static findNestedStruct(
+        allStructs: StructModel[],
+        targetName: string,
+        result: StructTypeDefinition
+    ): void {
+        for (const struct of allStructs) {
+            for (const field of struct.fields) {
+                const fieldType = this.extractStructNameFromType(field.type);
+                if (fieldType === targetName && !result[fieldType]) {
+                    // Found the target struct as a field type
+                    const targetStruct = allStructs.find(s => s.name === fieldType);
+                    if (targetStruct) {
+                        result[fieldType] = this.convertStructToTypeFields(targetStruct);
+                        // Recursively extract any nested structs within this one
+                        this.extractNestedStructs(targetStruct, allStructs, result);
+                    }
+                }
+            }
         }
     }
 }

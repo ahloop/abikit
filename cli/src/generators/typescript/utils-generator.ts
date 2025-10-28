@@ -253,6 +253,17 @@ export async function getNonce(
 ): Promise<number> {
     return await client.getTransactionCount({ address });
 }
+
+/**
+ * Check if a contract exists at the given address
+ */
+export async function contractExists(
+    client: PublicClient,
+    address: Address
+): Promise<boolean> {
+    const code = await client.getCode({ address });
+    return code !== '0x';
+}
 `;
 
         this.writeFile('src/utils/blockchain.ts', content);

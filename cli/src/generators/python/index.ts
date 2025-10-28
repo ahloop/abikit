@@ -14,6 +14,7 @@ import { SdkGenerator } from './sdk-generator';
 import { EventsGenerator } from './events-generator';
 import { SelectorsGenerator } from './selectors-generator';
 import { ErrorsGenerator } from './errors-generator';
+import { UtilitiesGenerator } from './utilities-generator';
 import { PythonUtils } from './utils';
 
 export class PythonGenerator extends BaseGenerator {
@@ -27,6 +28,7 @@ export class PythonGenerator extends BaseGenerator {
     private eventsGenerator: EventsGenerator;
     private selectorsGenerator: SelectorsGenerator;
     private errorsGenerator: ErrorsGenerator;
+    private utilitiesGenerator: UtilitiesGenerator;
 
     constructor(outDir: string, options: PythonTargetOptions = {}) {
         super(outDir, options);
@@ -50,6 +52,7 @@ export class PythonGenerator extends BaseGenerator {
         this.eventsGenerator = new EventsGenerator(outDir, this.options);
         this.selectorsGenerator = new SelectorsGenerator(outDir, this.options);
         this.errorsGenerator = new ErrorsGenerator(outDir, this.options);
+        this.utilitiesGenerator = new UtilitiesGenerator(outDir, this.options);
     }
 
     getName(): string {
@@ -98,6 +101,9 @@ export class PythonGenerator extends BaseGenerator {
 
         // Generate centralized types
         await this.typesGenerator.generateTypes(graph);
+
+        // Generate utilities
+        this.utilitiesGenerator.generateUtilities();
 
         // Generate config package
         await this.configGenerator.generateConfig(graph, context);
@@ -188,6 +194,9 @@ from .types import *
 
 # Config utilities
 from .config import *
+
+# Utilities
+from .utils import *
 `;
 
         this.writeFile('__init__.py', content);
