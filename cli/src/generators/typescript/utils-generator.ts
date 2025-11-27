@@ -721,6 +721,24 @@ export async function waitForBlocks(
         await new Promise(resolve => setTimeout(resolve, 1000));
     }
 }
+
+/**
+ * Compute a safe block range for event queries to avoid RPC range limits.
+ * By default this returns the last 100k blocks.
+ */
+export async function getSafeBlockRange(
+    publicClient: PublicClient,
+    maxRange: bigint = 100_000n
+): Promise<{ fromBlock: bigint; toBlock?: bigint }> {
+    const latestBlock = await publicClient.getBlock({ blockTag: 'latest' });
+    const latestNumber = latestBlock.number;
+
+    const fromBlock = latestNumber > maxRange
+        ? latestNumber - maxRange + 1n
+        : 0n;
+
+    return { fromBlock };
+}
 `;
 
         this.writeFile('src/utils/events.ts', content);

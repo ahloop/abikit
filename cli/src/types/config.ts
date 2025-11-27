@@ -32,6 +32,13 @@ export interface TypeScriptTargetOptions extends CommonTargetOptions {
     emitHooks?: boolean;
     bigintStyle?: 'native' | 'bn.js';
     emitStructsOnly?: boolean;
+    /**
+     * Emit \"prepare\" hooks for write functions that return pre-encoded
+     * transaction data ({ to, data, value }) for use with external signers.
+     * When enabled, each nonpayable/payable function gets a corresponding
+     * prepare<FunctionName>() helper.
+     */
+    emitPrepareHooks?: boolean;
     sdk?: SDKGenerationConfig;
 }
 

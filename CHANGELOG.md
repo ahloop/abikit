@@ -1,5 +1,30 @@
 # abikit Changelog
 
+## v0.3.0 - Prepare Hooks for External Signer Integration (2025-01-XX)
+
+### 🚀 New Features
+- **Prepare Hooks**: Generate `prepare<FunctionName>()` methods for all write functions
+- **External Signer Support**: Return transaction data (`{ to, data, value }`) for integration with Privy, WalletConnect, and other external signers
+- **Code Reuse**: Write methods now use prepare hooks internally, ensuring consistency
+- **Type Safety**: Shared `PreparedTransaction` type exported from generated SDKs
+
+### 🔧 Technical Changes
+- Added `emitPrepareHooks` option to `TypeScriptTargetOptions` (defaults to enabled)
+- Contract generator now emits both `prepare<FnName>()` and `<fnName>()` methods
+- Write methods refactored to call corresponding prepare methods internally
+- Generated `PreparedTransaction` type in shared types barrel
+
+### 🎯 Benefits
+- Enable external signer integration without manual ABI encoding
+- Consistent transaction preparation across all contract methods
+- Type-safe transaction data structures
+- Simplified integration with account abstraction wallets
+
+### 📦 Generated SDKs
+- **TypeScript**: All contract classes now have `prepare*` methods alongside write methods
+- **Example**: `token.prepareApprove(spender, amount)` returns `PreparedTransaction`
+- **Usage**: Pass prepared transactions to external signers like Privy's `sendTransaction()`
+
 ## v0.2.5 - Automatic EIP-712 Signature Generation (2025-10-21)
 
 ### 🚀 New Features

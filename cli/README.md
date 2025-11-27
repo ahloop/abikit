@@ -27,6 +27,7 @@ abikit clean      # remove generated files
 ## Features
 
 - **Multi-language SDKs**: TypeScript (viem/ethers) and Python (web3.py)
+- **Prepare Hooks**: Generate `prepare<FunctionName>()` methods for all write functions, returning transaction data (`{ to, data, value }`) for external signer integration (Privy, WalletConnect, etc.)
 - **Artifact Caching**: Copy artifacts to local `artifacts/` folder for faster builds
 - **Smart Resolution**: Per-contract artifact overrides and global defaults
 - **Network Support**: Multi-network contract address management
