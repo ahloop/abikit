@@ -610,7 +610,7 @@ export interface BlockInfo {
  * Get typed event logs for a specific event
  */
 export async function getTypedLogs<TEvent = any>(
-    publicClient: PublicClient,
+    publicClient: PublicClient | any,
     address: Address,
     abi: any[],
     eventName: string,
@@ -627,7 +627,7 @@ export async function getTypedLogs<TEvent = any>(
         toBlock: range.toBlock ?? 'latest'
     });
 
-    return logs.map(log => ({
+    return logs.map((log: { args: unknown; [key: string]: unknown }) => ({
         ...log,
         args: log.args as TEvent,
         eventName
@@ -638,7 +638,7 @@ export async function getTypedLogs<TEvent = any>(
  * Get block information for a block number
  */
 export async function getBlockInfo(
-    publicClient: PublicClient,
+    publicClient: PublicClient | any,
     blockNumber: bigint
 ): Promise<BlockInfo> {
     const block = await publicClient.getBlock({ blockNumber });
@@ -657,7 +657,7 @@ export async function getBlockInfo(
  * Get block timestamp for a block number
  */
 export async function getBlockTimestamp(
-    publicClient: PublicClient,
+    publicClient: PublicClient | any,
     blockNumber: bigint
 ): Promise<Date> {
     const block = await publicClient.getBlock({ blockNumber });
@@ -674,7 +674,7 @@ export function formatBlockTimestamp(timestamp: bigint): string {
 /**
  * Get latest block number
  */
-export async function getLatestBlockNumber(publicClient: PublicClient): Promise<bigint> {
+export async function getLatestBlockNumber(publicClient: PublicClient | any): Promise<bigint> {
     const block = await publicClient.getBlock({ blockTag: 'latest' });
     return block.number;
 }
@@ -683,7 +683,7 @@ export async function getLatestBlockNumber(publicClient: PublicClient): Promise<
  * Get block number for a specific timestamp (approximate)
  */
 export async function getBlockNumberForTimestamp(
-    publicClient: PublicClient,
+    publicClient: PublicClient | any,
     timestamp: bigint
 ): Promise<bigint> {
     // This is a simplified implementation
@@ -706,7 +706,7 @@ export async function getBlockNumberForTimestamp(
  * Wait for a specific number of blocks
  */
 export async function waitForBlocks(
-    publicClient: PublicClient,
+    publicClient: PublicClient | any,
     blockCount: number
 ): Promise<void> {
     const startBlock = await getLatestBlockNumber(publicClient);
@@ -727,7 +727,7 @@ export async function waitForBlocks(
  * By default this returns the last 100k blocks.
  */
 export async function getSafeBlockRange(
-    publicClient: PublicClient,
+    publicClient: PublicClient | any,
     maxRange: bigint = 100_000n
 ): Promise<{ fromBlock: bigint; toBlock?: bigint }> {
     const latestBlock = await publicClient.getBlock({ blockTag: 'latest' });

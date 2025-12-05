@@ -19,9 +19,10 @@ export class ArtifactCacheManager {
     private config: ContractsConfig;
     private cache: ArtifactCacheData;
 
-    constructor(config: ContractsConfig, cacheDir: string = 'artifacts') {
+    constructor(config: ContractsConfig, cacheDir: string = 'artifacts', configDir?: string) {
         this.config = config;
-        this.cacheDir = path.resolve(cacheDir);
+        const baseDir = configDir || process.cwd();
+        this.cacheDir = path.isAbsolute(cacheDir) ? cacheDir : path.resolve(baseDir, cacheDir);
         this.cacheFile = path.join(this.cacheDir, '.artifact-cache.json');
         this.cache = this.loadCache();
     }
@@ -56,6 +57,11 @@ export class ArtifactCacheManager {
      */
     async copyArtifacts(sourceDir: string, contractNames: string[], force: boolean = false): Promise<void> {
         if (!this.shouldCopyArtifacts()) {
+            return;
+        }
+
+        if (!fs.existsSync(sourceDir)) {
+            console.log(`⚠️  Source directory ${sourceDir} doesn't exist, skipping copy (using cached artifacts)`);
             return;
         }
 

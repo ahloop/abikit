@@ -143,14 +143,14 @@ import { ${contract.name.toUpperCase()}_ABI } from './abi';
 
 export interface ${contract.name}Config {
   address: Address;
-  publicClient?: PublicClient;
-  walletClient?: WalletClient;
+  publicClient?: PublicClient | any;
+  walletClient?: WalletClient | any;
 }
 
 export class ${contract.name} {
   public readonly address: Address;
-  private publicClient?: PublicClient;
-  private walletClient?: WalletClient;
+  private publicClient?: PublicClient | any;
+  private walletClient?: WalletClient | any;
 
   constructor(config: ${contract.name}Config) {
     this.address = config.address;
@@ -203,14 +203,14 @@ ${contract.events.map(event => this.renderEventMethod(event, contract)).join('\n
    */
   async ${func.name}(${params}): Promise<${returnType}> {
     ${isReadOnly
-        ? `if (!this.publicClient) throw new Error('Public client required for read operations');
+          ? `if (!this.publicClient) throw new Error('Public client required for read operations');
     return await readContract(this.publicClient, {
       address: this.address,
       abi: ${contract.name.toUpperCase()}_ABI,
       functionName: '${func.name}',
       args: ${argsWithTypeAssertion},
     }) as ${returnType};`
-        : `if (!this.walletClient) throw new Error('Wallet client required for write operations');
+          : `if (!this.walletClient) throw new Error('Wallet client required for write operations');
     if (!this.walletClient.account) throw new Error('Wallet client account required for write operations');
     return await writeContract(this.walletClient, {
       address: this.address,
@@ -220,7 +220,7 @@ ${contract.events.map(event => this.renderEventMethod(event, contract)).join('\n
       account: this.walletClient.account,
       chain: this.walletClient.chain,
     });`
-      }
+        }
   }`;
     }
 

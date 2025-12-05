@@ -23,15 +23,22 @@ export class ArtifactLoader {
     private resolvedPaths: Map<string, string> = new Map();
     private cacheManager?: ArtifactCacheManager;
 
-    constructor(foundryOutDir: string, hardhatOutDir?: string, config?: ContractsConfig) {
-        this.foundryOutDir = foundryOutDir;
-        this.hardhatOutDir = hardhatOutDir;
+    constructor(foundryOutDir: string, hardhatOutDir?: string, config?: ContractsConfig, configDir?: string) {
+        const baseDir = configDir || process.cwd();
+        this.foundryOutDir = path.isAbsolute(foundryOutDir) ? foundryOutDir : path.resolve(baseDir, foundryOutDir);
+        this.hardhatOutDir = hardhatOutDir
+            ? (path.isAbsolute(hardhatOutDir) ? hardhatOutDir : path.resolve(baseDir, hardhatOutDir))
+            : undefined;
         this.config = config;
 
         // Initialize cache manager if caching is enabled
         if (config?.artifactSources?.cache?.mode === 'copy') {
             const cacheDir = config.artifactSources.cache.dir || 'artifacts';
-            this.cacheManager = new ArtifactCacheManager(config, cacheDir);
+            this.cacheManager = new ArtifactCacheManager(
+                config,
+                cacheDir,
+                configDir || baseDir
+            );
         }
     }
 
@@ -83,6 +90,15 @@ export class ArtifactLoader {
 
         // Try foundry convention
         if (project === 'foundry') {
+            // If foundryOut doesn't exist, fall back to cache directory if available
+            if (!fs.existsSync(outDir) && this.cacheManager) {
+                const cacheDir = this.cacheManager.getCacheDir();
+                const cachePath = path.join(cacheDir, `${contractName}.json`);
+                if (fs.existsSync(cachePath)) {
+                    return cachePath;
+                }
+            }
+
             const foundryPath = path.join(outDir, `${contractName}.sol`, `${contractName}.json`);
             if (fs.existsSync(foundryPath)) {
                 return foundryPath;
@@ -101,6 +117,14 @@ export class ArtifactLoader {
                 if (fs.existsSync(p)) {
                     return p;
                 }
+            }
+        }
+
+        // Fallback to cached artifacts if available
+        if (this.cacheManager?.isArtifactCached(contractName)) {
+            const cachedPath = this.cacheManager.getCachedArtifactPath(contractName);
+            if (cachedPath) {
+                return cachedPath;
             }
         }
 
@@ -127,6 +151,27 @@ export class ArtifactLoader {
                     };
                 } catch (error) {
                     console.warn(`Failed to load cached artifact from ${cachedPath}:`, error);
+                }
+            }
+        }
+
+        // If cache map is stale (absolute paths changed), fall back to cache dir lookup
+        if (this.cacheManager) {
+            const cacheDir = this.cacheManager.getCacheDir();
+            const cachePath = path.join(cacheDir, `${contractName}.json`);
+            if (fs.existsSync(cachePath)) {
+                this.resolvedPaths.set(contractName, cachePath);
+                try {
+                    const artifact = JSON.parse(fs.readFileSync(cachePath, 'utf8'));
+                    return {
+                        contractName,
+                        abi: artifact.abi || [],
+                        bytecode: artifact.bytecode?.object || artifact.bytecode,
+                        deployedBytecode: artifact.deployedBytecode?.object || artifact.deployedBytecode,
+                        metadata: artifact.metadata,
+                    };
+                } catch (error) {
+                    console.warn(`Failed to load cached artifact from ${cachePath}:`, error);
                 }
             }
         }
@@ -181,6 +226,10 @@ export class ArtifactLoader {
      * Try to load artifact from Foundry out directory
      */
     private tryLoadFromFoundry(contractName: string): ContractArtifact | null {
+        if (!fs.existsSync(this.foundryOutDir)) {
+            return null;
+        }
+
         const artifactDir = path.join(this.foundryOutDir, `${contractName}.sol`);
         const artifactPath = path.join(artifactDir, `${contractName}.json`);
 

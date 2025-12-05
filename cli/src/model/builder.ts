@@ -2,6 +2,7 @@
  * Model graph builder - constructs contract graph from artifacts and config
  */
 
+import * as path from 'path';
 import { ContractsConfig } from '../types/config';
 import { ContractGraph, ContractModel, NetworkModel } from '../types/model';
 import { ArtifactLoader } from '../artifacts/loader';
@@ -20,29 +21,42 @@ export class ModelBuilder {
     /**
      * Build contract graph from configuration
      */
-    buildGraph(config: ContractsConfig): ContractGraph {
+    buildGraph(config: ContractsConfig, configDir?: string): ContractGraph {
         const contracts = new Map<string, ContractModel>();
         const networks = new Map<string, NetworkModel>();
         const relationships = new Map<string, string[]>();
 
         // Load artifact loader with config for dynamic resolution
-        const foundryOut = config.artifactSources?.defaults?.foundryOut || config.generation.artifactPaths?.foundryOut || './out';
-        const hardhatOut = config.artifactSources?.defaults?.hardhatOut || config.generation.artifactPaths?.hardhatOut;
-        const artifactLoader = new ArtifactLoader(foundryOut, hardhatOut, config);
+        const baseDir = configDir || process.cwd();
+        const foundryOutRaw = config.artifactSources?.defaults?.foundryOut || config.generation.artifactPaths?.foundryOut || './out';
+        const hardhatOutRaw = config.artifactSources?.defaults?.hardhatOut || config.generation.artifactPaths?.hardhatOut;
+        const foundryOut = path.isAbsolute(foundryOutRaw) ? foundryOutRaw : path.resolve(baseDir, foundryOutRaw);
+        const hardhatOut = hardhatOutRaw
+            ? (path.isAbsolute(hardhatOutRaw) ? hardhatOutRaw : path.resolve(baseDir, hardhatOutRaw))
+            : undefined;
+        const artifactLoader = new ArtifactLoader(foundryOut, hardhatOut, config, configDir);
 
         // Get all contract names
         const contractNames = this.configLoader.getAllContractNames(config);
 
         // Load and normalize each contract
         for (const contractName of contractNames) {
+            const isInterface = this.configLoader.isInterface(contractName, config);
+
             try {
                 const artifact = artifactLoader.loadArtifact(contractName);
-                const isInterface = this.configLoader.isInterface(contractName, config);
                 const contractModel = this.abiNormalizer.normalizeContract(artifact, isInterface);
-
                 contracts.set(contractName, contractModel);
             } catch (error) {
-                console.warn(`Skipping contract ${contractName}: ${error}`);
+                if (isInterface) {
+                    // Interfaces may not have compiled artifacts; synthesize an empty ABI artifact
+                    const stub = { contractName, abi: [] };
+                    const contractModel = this.abiNormalizer.normalizeContract(stub as any, true);
+                    contracts.set(contractName, contractModel);
+                    console.warn(`Using stub artifact for interface ${contractName} (missing artifact)`);
+                } else {
+                    console.warn(`Skipping contract ${contractName}: ${error}`);
+                }
             }
         }
 

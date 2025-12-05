@@ -106,8 +106,8 @@ ${contractImports}`;
 
     private generateInterface(className: string): string {
         return `export interface ${className}Config {
-  publicClient?: PublicClient;
-  walletClient?: WalletClient;
+  publicClient?: PublicClient | any;
+  walletClient?: WalletClient | any;
   network?: string;
   forceSDKLoad?: boolean;
 }`;
@@ -132,8 +132,8 @@ ${contractImports}`;
         const helperMethods = this.generateHelperMethods(className, contractAliases);
 
         return `export class ${className} {
-  private publicClient?: PublicClient;
-  private walletClient?: WalletClient;
+  private publicClient?: PublicClient | any;
+  private walletClient?: WalletClient | any;
   private network: string;
   private addresses: any;
   
@@ -201,7 +201,7 @@ ${loadAllContracts}
             .map(alias => `    this._${this.toCamelCase(alias)} = undefined;`)
             .join('\n');
 
-        return `  setClients(publicClient?: PublicClient, walletClient?: WalletClient): void {
+        return `  setClients(publicClient?: PublicClient | any, walletClient?: WalletClient | any): void {
     this.publicClient = publicClient;
     this.walletClient = walletClient;
     // Reset instances to pick up new clients

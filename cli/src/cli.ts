@@ -15,10 +15,20 @@ import { CacheManager } from './cache/manager';
 
 const program = new Command();
 
+function getVersion(): string {
+    try {
+        const pkgPath = path.join(__dirname, '../package.json');
+        const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf8'));
+        return pkg.version || 'unknown';
+    } catch {
+        return 'unknown';
+    }
+}
+
 program
     .name('abikit')
     .description('Multi-language SDK generator for smart contracts')
-    .version('0.1.2');
+    .version(getVersion());
 
 /**
  * Init command - scaffold contracts.yaml from artifacts
@@ -192,7 +202,10 @@ program
     .action(async (configPath: string, options: { force?: boolean }) => {
         try {
             const resolvedConfigPath = path.resolve(configPath);
-            console.log(chalk.blue('🔨 Building SDKs...'));
+            const configDir = path.dirname(resolvedConfigPath);
+            const cliVersion = getVersion();
+            console.log(chalk.blue(`🔨 Building SDKs (abikit v${cliVersion})...`));
+            console.log(chalk.dim(`Config: ${resolvedConfigPath}`));
 
             const loader = new ConfigLoader();
             const config = loader.loadConfig(resolvedConfigPath);
@@ -201,24 +214,37 @@ program
             const cacheManager = new CacheManager('.abikit-cache.json');
 
             // Determine artifact paths
-            const foundryOut = config.artifactSources?.defaults?.foundryOut ||
+            const foundryOutRaw = config.artifactSources?.defaults?.foundryOut ||
                 config.generation.artifactPaths?.foundryOut ||
                 './out';
-            const artifactPaths = [path.resolve(foundryOut)];
+            const foundryOut = path.isAbsolute(foundryOutRaw)
+                ? foundryOutRaw
+                : path.resolve(configDir, foundryOutRaw);
+            const artifactPaths = [foundryOut];
 
             if (config.artifactSources?.defaults?.hardhatOut || config.generation.artifactPaths?.hardhatOut) {
-                const hardhatOut = config.artifactSources?.defaults?.hardhatOut || config.generation.artifactPaths?.hardhatOut;
-                if (hardhatOut) {
-                    artifactPaths.push(path.resolve(hardhatOut));
+                const hardhatOutRaw = config.artifactSources?.defaults?.hardhatOut || config.generation.artifactPaths?.hardhatOut;
+                if (hardhatOutRaw) {
+                    const hardhatOut = path.isAbsolute(hardhatOutRaw)
+                        ? hardhatOutRaw
+                        : path.resolve(configDir, hardhatOutRaw);
+                    artifactPaths.push(hardhatOut);
                 }
             }
 
             // Determine target directories
-            const targetDirs = config.generation.targets.map(t => path.resolve(t.outDir));
+            const targetDirs = config.generation.targets.map(t =>
+                path.isAbsolute(t.outDir) ? t.outDir : path.resolve(configDir, t.outDir)
+            );
 
             // Handle artifact caching if enabled (run before cache check)
             if (config.artifactSources?.cache?.mode === 'copy') {
-                const artifactLoader = new ArtifactLoader(foundryOut, config.artifactSources?.defaults?.hardhatOut, config);
+                const artifactLoader = new ArtifactLoader(
+                    foundryOut,
+                    config.artifactSources?.defaults?.hardhatOut,
+                    config,
+                    configDir
+                );
                 const contractNames = Object.keys(config.contracts || {});
 
                 console.log(chalk.blue('📦 Caching artifacts...'));
@@ -252,7 +278,7 @@ program
             }
 
             const builder = new ModelBuilder();
-            const graph = builder.buildGraph(config);
+            const graph = builder.buildGraph(config, configDir);
 
             // Apply ignore rules
             builder.applyIgnoreRules(graph, config.generation.ignoreFunctions);

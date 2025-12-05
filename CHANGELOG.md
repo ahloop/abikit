@@ -1,5 +1,12 @@
 # abikit Changelog
 
+## v0.3.1 - Bug Fixes and Improvements (2025-01-XX)
+
+### 🔧 Improvements
+- **Better Error Handling**: Improved error message generation and handling
+- **Type Safety**: Enhanced type definitions for better IDE support
+- **Code Quality**: Various code quality improvements and bug fixes
+
 ## v0.3.0 - Prepare Hooks for External Signer Integration (2025-01-XX)
 
 ### 🚀 New Features
